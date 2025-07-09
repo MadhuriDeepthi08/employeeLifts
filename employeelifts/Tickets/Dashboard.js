@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  Platform,
   TextInput,
   Alert,
 } from 'react-native';
@@ -279,32 +280,32 @@ const Dashboard = ({ navigation }) => {
     switch (status?.toLowerCase()) {
       case 'open':
         return {
-          backgroundColor: '#FFD700', // bright yellow
-          color: '#000000', // black text
+          backgroundColor: '#C49102',
+          color: '#000000',
         };
       case 'todo':
         return {
-          backgroundColor: '#FF6B6B', // soft red
+          backgroundColor: '#FF6B6B',
           color: '#FFFFFF',
         };
       case 'in-progress':
         return {
-          backgroundColor: '#4D96FF', // blue
+          backgroundColor: '#4D96FF',
           color: '#FFFFFF',
         };
       case 'pending':
         return {
-          backgroundColor: '#FFB84D', // orange
+          backgroundColor: '#FFB84D',
           color: '#000000',
         };
       case 'done':
         return {
-          backgroundColor: '#22C55E', // green
+          backgroundColor: '#22C55E',
           color: '#FFFFFF',
         };
       default:
         return {
-          backgroundColor: '#9CA3AF', // gray
+          backgroundColor: '#9CA3AF',
           color: '#FFFFFF',
         };
     }
@@ -555,33 +556,36 @@ const Dashboard = ({ navigation }) => {
 
   return (
     <>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={24} color="#f9f9f9" />
-        </TouchableOpacity>
-        <Text style={styles.ticketNumber}>Dashboard</Text>
-      </View>
+      <View style={styles.headerContainer}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <MaterialIcons name="arrow-back" size={24} color="#f9f9f9" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Dashboard</Text>
+        </View>
 
-      <View style={{ marginTop: 56 }}>
-        <Text style={styles.filterLabel}> Status</Text>
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={statusFilter}
-            onValueChange={value => setStatusFilter(value)}
-            style={styles.picker}
-            dropdownIconColor="#3EB489"
-          >
-            <Picker.Item label="All" value={null} />
-            {ticketStatuses.map(status => (
-              <Picker.Item
-                key={status.status_id}
-                label={status.status_name}
-                value={status.status_id.toString()}
-              />
-            ))}
-          </Picker>
+        <View style={{ marginTop: 70, paddingHorizontal: 20 }}>
+          <Text style={styles.filterLabel}> Status</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={statusFilter}
+              onValueChange={value => setStatusFilter(value)}
+              style={styles.picker}
+              dropdownIconColor="#3EB489"
+            >
+              <Picker.Item label="All" value={null} />
+              {ticketStatuses.map(status => (
+                <Picker.Item
+                  key={status.status_id}
+                  label={status.status_name}
+                  value={status.status_id.toString()}
+                />
+              ))}
+            </Picker>
+          </View>
         </View>
       </View>
+
       <View style={styles.container}>
         <FlatList
           data={tickets}
@@ -589,171 +593,164 @@ const Dashboard = ({ navigation }) => {
           renderItem={renderItem}
         />
 
-        <View style={styles.container}>
-          <FlatList
-            data={tickets}
-            keyExtractor={item => item.ticket_id.toString()}
-            renderItem={renderItem}
-          />
+        <Modal visible={editVisible} transparent animationType="slide">
+          <View style={styles.modalWrapper}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Update Status</Text>
 
-          <Modal visible={editVisible} transparent animationType="slide">
-            <View style={styles.modalWrapper}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Update Status</Text>
+              <Picker
+                selectedValue={editStatus}
+                onValueChange={val => setEditStatus(val)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Status" value="" />
+                <Picker.Item label="Done" value="Done" />
+                <Picker.Item label="On Hold" value="On Hold" />
+                <Picker.Item label="Pending" value="Pending" />
+              </Picker>
 
-                <Picker
-                  selectedValue={editStatus}
-                  onValueChange={val => setEditStatus(val)}
-                  style={styles.input}
-                >
-                  <Picker.Item label="Select Status" value="" />
-                  <Picker.Item label="Done" value="Done" />
-                  <Picker.Item label="On Hold" value="On Hold" />
-                  <Picker.Item label="Pending" value="Pending" />
-                </Picker>
-
-                {(editStatus === 'On Hold' || editStatus === 'Pending') && (
-                  <TextInput
-                    placeholder="Reason"
-                    value={editReason}
-                    onChangeText={setEditReason}
-                    style={styles.input}
-                  />
-                )}
-
-                <View style={styles.modalButtonRow}>
-                  <TouchableOpacity
-                    style={styles.modalButton}
-                    onPress={handleEditUpdate}
-                  >
-                    <Text style={styles.modalButtonText}>Update</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.modalCancelButton}
-                    onPress={() => setEditVisible(false)}
-                  >
-                    <Text style={styles.modalButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
-
-          <Modal visible={modalVisible} transparent animationType="slide">
-            <View style={styles.modalWrapper}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Set Arrival Date</Text>
-
-                <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-                  <TextInput
-                    placeholder="Select Date"
-                    editable={false}
-                    value={arrivalDate.toDateString()}
-                    style={styles.input}
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity onPress={() => setShowTimePicker(true)}>
-                  <TextInput
-                    placeholder="Select Time"
-                    editable={false}
-                    value={arrivalTime.toTimeString().split(' ')[0]}
-                    style={styles.input}
-                  />
-                </TouchableOpacity>
-
+              {(editStatus === 'On Hold' || editStatus === 'Pending') && (
                 <TextInput
-                  placeholder="Reason for Delay"
-                  value={reasonForDelay}
-                  onChangeText={setReasonForDelay}
+                  placeholder="Reason"
+                  value={editReason}
+                  onChangeText={setEditReason}
                   style={styles.input}
                 />
+              )}
 
-                <View style={styles.modalButtonRow}>
-                  <TouchableOpacity
-                    style={styles.modalButton}
-                    onPress={handleSaveArrival}
-                  >
-                    <Text style={styles.modalButtonText}>Save</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.modalCancelButton}
-                    onPress={() => setModalVisible(false)}
-                  >
-                    <Text style={styles.modalButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
-
-          <Modal visible={serviceVisible} transparent animationType="slide">
-            <View style={styles.modalWrapper}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Update Service</Text>
-
-                <Picker
-                  selectedValue={serviceReason}
-                  onValueChange={itemValue => setServiceReason(itemValue)}
-                  style={styles.input}
+              <View style={styles.modalButtonRow}>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={handleEditUpdate}
                 >
-                  {serviceReasons.map((reason, idx) => (
-                    <Picker.Item key={idx} label={reason} value={reason} />
-                  ))}
-                </Picker>
-
-                {serviceReason === 'Other' && (
-                  <TextInput
-                    placeholder="Custom Reason"
-                    value={customServiceReason}
-                    onChangeText={setCustomServiceReason}
-                    style={styles.input}
-                  />
-                )}
-
-                <View style={styles.modalButtonRow}>
-                  <TouchableOpacity
-                    style={styles.modalButton}
-                    onPress={handleServiceUpdate}
-                  >
-                    <Text style={styles.modalButtonText}>Save</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.modalCancelButton}
-                    onPress={() => setServiceVisible(false)}
-                  >
-                    <Text style={styles.modalButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                </View>
+                  <Text style={styles.modalButtonText}>Update</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalCancelButton}
+                  onPress={() => setEditVisible(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
               </View>
             </View>
-          </Modal>
+          </View>
+        </Modal>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={arrivalDate}
-              mode="date"
-              display="default"
-              onChange={(event, selectedDate) => {
-                setShowDatePicker(false);
-                if (selectedDate) setArrivalDate(selectedDate);
-              }}
-            />
-          )}
+        <Modal visible={modalVisible} transparent animationType="slide">
+          <View style={styles.modalWrapper}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Set Arrival Date</Text>
 
-          {showTimePicker && (
-            <DateTimePicker
-              value={arrivalTime}
-              mode="time"
-              display="default"
-              onChange={(event, selectedTime) => {
-                setShowTimePicker(false);
-                if (selectedTime) setArrivalTime(selectedTime);
-              }}
-            />
-          )}
-        </View>
+              <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+                <TextInput
+                  placeholder="Select Date"
+                  editable={false}
+                  value={arrivalDate.toDateString()}
+                  style={styles.input}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => setShowTimePicker(true)}>
+                <TextInput
+                  placeholder="Select Time"
+                  editable={false}
+                  value={arrivalTime.toTimeString().split(' ')[0]}
+                  style={styles.input}
+                />
+              </TouchableOpacity>
+
+              <TextInput
+                placeholder="Reason for Delay"
+                value={reasonForDelay}
+                onChangeText={setReasonForDelay}
+                style={styles.input}
+              />
+
+              <View style={styles.modalButtonRow}>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={handleSaveArrival}
+                >
+                  <Text style={styles.modalButtonText}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalCancelButton}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal visible={serviceVisible} transparent animationType="slide">
+          <View style={styles.modalWrapper}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Update Service</Text>
+
+              <Picker
+                selectedValue={serviceReason}
+                onValueChange={itemValue => setServiceReason(itemValue)}
+                style={styles.input}
+              >
+                {serviceReasons.map((reason, idx) => (
+                  <Picker.Item key={idx} label={reason} value={reason} />
+                ))}
+              </Picker>
+
+              {serviceReason === 'Other' && (
+                <TextInput
+                  placeholder="Custom Reason"
+                  value={customServiceReason}
+                  onChangeText={setCustomServiceReason}
+                  style={styles.input}
+                />
+              )}
+
+              <View style={styles.modalButtonRow}>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={handleServiceUpdate}
+                >
+                  <Text style={styles.modalButtonText}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalCancelButton}
+                  onPress={() => setServiceVisible(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={arrivalDate}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (selectedDate) setArrivalDate(selectedDate);
+            }}
+          />
+        )}
+
+        {showTimePicker && (
+          <DateTimePicker
+            value={arrivalTime}
+            mode="time"
+            display="default"
+            onChange={(event, selectedTime) => {
+              setShowTimePicker(false);
+              if (selectedTime) setArrivalTime(selectedTime);
+            }}
+          />
+        )}
       </View>
+
       <View style={styles.bottomBar}>
         <TouchableOpacity
           style={styles.navItem}
@@ -806,17 +803,16 @@ const styles = StyleSheet.create({
   // },
   ticketCard: {
     backgroundColor: '#fff',
-    marginHorizontal: 10,
-    marginVertical: 12,
-    padding: 10,
-    borderRadius: 10,
-    elevation: 6,
+    marginBottom: 12,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
-    shadowRadius: 6,
-    borderColor: '#e5e7eb',
+    shadowRadius: 1.41,
     borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
 
   divider: {
@@ -907,7 +903,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
-    // marginRight: 10,
+
     marginLeft: 'auto',
   },
 
@@ -916,7 +912,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
-    // marginRight: 10,
+
     marginLeft: 'auto',
     alignItems: 'center',
   },
@@ -971,18 +967,6 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
-  header: {
-    position: 'absolute',
-    top: 0,
-    width: '100%',
-    backgroundColor: '#3EB489',
-    height: 56,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-
-    alignItems: 'center',
-    zIndex: 100,
-  },
   modalButton: {
     flex: 1,
     backgroundColor: '#3EB489',
@@ -1005,30 +989,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: 'black',
-    marginTop: 30,
-    marginHorizontal: 50,
-  },
-
-  pickerWrapper: {
-    backgroundColor: '#f4f4f4',
-    borderRadius: 10,
-    marginHorizontal: 30,
-    marginBottom: 20,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-
-  picker: {
-    height: 48,
-    width: '100%',
-    color: 'black',
-    paddingHorizontal: 20,
-  },
 
   buttonRows: {
     flexDirection: 'row',
@@ -1040,7 +1000,7 @@ const styles = StyleSheet.create({
 
   serviceButton: {
     flex: 1,
-    backgroundColor: '#3EB489',
+    backgroundColor: '#3ba6ff',
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 6,
@@ -1050,7 +1010,7 @@ const styles = StyleSheet.create({
 
   editButton: {
     flex: 1,
-    backgroundColor: '#B43E5A',
+    backgroundColor: '#FFB13B',
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 6,
@@ -1077,6 +1037,7 @@ const styles = StyleSheet.create({
   navText: {
     fontSize: 12,
     color: '#888',
+    fontWeight: 'bold',
     marginTop: 4,
   },
   container: {
@@ -1105,7 +1066,7 @@ const styles = StyleSheet.create({
 
   arrivalButton: {
     flex: 1,
-    backgroundColor: '#3Eb489',
+    backgroundColor: '#9E9E9E',
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 6,
@@ -1115,7 +1076,7 @@ const styles = StyleSheet.create({
 
   startButton: {
     flex: 1,
-    backgroundColor: '#B43E5A',
+    backgroundColor: '#3EB489',
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 6,
@@ -1127,6 +1088,64 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#3EB489',
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    zIndex: 1000,
+    elevation: 4,
+  },
+
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginLeft: 12,
+  },
+
+  filterSection: {
+    marginTop: 12,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 6,
+  },
+
+  pickerWrapper: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+
+  picker: {
+    height: 50,
+    width: '100%',
+
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#000',
+    backgroundColor: '#f9f9f9',
+    paddingHorizontal: 10,
   },
 });
 

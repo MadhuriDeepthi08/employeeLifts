@@ -77,17 +77,6 @@ const EventsOverview = () => {
             {item.description}
           </Text>
         </View>
-        <View style={styles.divider} />
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('ViewTickets', { ticketId: item.ticket_id })
-          }
-        >
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="visibility" size={20} color="#fff" />
-          </TouchableOpacity>
-        </TouchableOpacity>
       </View>
     );
   };
@@ -239,114 +228,7 @@ const EventsOverview = () => {
 };
 
 export default EventsOverview;
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f2f4f7',
-    padding: 18,
-  },
-  divider: {
-    height: 1.2,
-    backgroundColor: '#999',
-    marginTop: 15,
-  },
-
-  dropdownContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    marginBottom: 20,
-    overflow: 'hidden',
-  },
-  picker: {
-    height: 48,
-    width: '100%',
-  },
-  listContent: {
-    paddingBottom: 40,
-  },
-  iconButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: '#00bdaa',
-    borderRadius: 5,
-  },
-
-  card: {
-    backgroundColor: '#fff',
-    margin: 10,
-    padding: 12,
-    borderRadius: 10,
-    elevation: 3,
-
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    borderWidth: 1.2,
-    borderColor: '#bbb',
-  },
-  serviceId: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#00bdaa',
-    marginBottom: 10,
-  },
-  field: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  cards: {
-    marginHorizontal: 20,
-    marginTop: 10,
-  },
-  button: {
-    marginTop: 12,
-    backgroundColor: '#00bdaa',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
-    marginLeft: 6,
-    fontSize: 14,
-  },
-  emptyContainer: {
-    marginTop: 50,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#999',
-  },
-  bottomBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-  },
-  navItem: {
-    alignItems: 'center',
-  },
-  navText: {
-    fontSize: 12,
-    color: '#888',
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-
   ticketNumber: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -364,5 +246,84 @@ const styles = StyleSheet.create({
 
     alignItems: 'center',
     zIndex: 100,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#f2f4f7',
+    padding: 18,
+  },
+
+  card: {
+    backgroundColor: '#fff',
+    marginBottom: 30,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+    borderWidth: 1,
+    borderColor: '#bbb',
+  },
+  cards: {
+    gap: 6,
+  },
+  serviceId: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#222',
+  },
+  field: {
+    fontSize: 14,
+    color: '#888',
+    fontWeight: 'bold',
+    marginTop: 2,
+  },
+  picker: {
+    backgroundColor: '#f1f1f1',
+    borderRadius: 8,
+    marginBottom: 16,
+    marginHorizontal: 8,
+  },
+  dropdownContainer: {
+    marginVertical: 8,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    elevation: 2,
+    paddingHorizontal: 8,
+  },
+  listContent: {
+    paddingBottom: 100,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 80,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#888',
+    fontWeight: 'bold',
+  },
+  bottomBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#fff',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    elevation: 10,
+  },
+  navItem: {
+    alignItems: 'center',
+  },
+  navText: {
+    fontSize: 12,
+    color: '#888',
+    fontWeight: 'bold',
+    marginTop: 4,
   },
 });

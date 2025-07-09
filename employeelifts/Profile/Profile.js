@@ -405,9 +405,9 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#bbb',
+    borderColor: '#e5e7eb',
     borderRadius: 8,
-    color: '#222',
+    color: '#888',
     fontsize: 14,
     fontWeight: 'bold',
     padding: 10,
@@ -435,11 +435,15 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#00bdaa',
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 20,
+    alignSelf: 'center',
+    marginTop: 24,
+    minWidth: 200,
   },
+
   buttonText: {
     color: '#fff',
     fontSize: 14,
@@ -497,8 +501,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   navText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#888',
+    fontWeight: 'bold',
     marginTop: 4,
   },
 });

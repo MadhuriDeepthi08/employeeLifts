@@ -88,12 +88,7 @@ const ViewTickets = ({ navigation }) => {
                     )
                   }
                 >
-                  <Text
-                    style={[
-                      styles.address,
-                      { color: '#1E88E5', textDecorationLine: 'underline' },
-                    ]}
-                  >
+                  <Text style={[styles.address]}>
                     {item.state_name}, {item.city_name}, {item.region_name}
                   </Text>
                 </TouchableOpacity>
@@ -176,122 +171,6 @@ const ViewTickets = ({ navigation }) => {
   );
 };
 
-// const styles = StyleSheet.create({
-//   ticketCardBox: {
-//     backgroundColor: '#fff',
-//     marginHorizontal: 10,
-//     marginVertical: 12,
-//     padding: 10,
-//     elevation: 10,
-//     shadowColor: '#000',
-//     shadowOffset: { width: 0, height: 4 },
-//     shadowOpacity: 0.35,
-//     shadowRadius: 6,
-//     borderWidth: 1.2,
-//     borderColor: '#bbb',
-//   },
-//   content: {
-//     marginHorizontal: 20,
-//   },
-//   header: {
-//     position: 'absolute',
-//     top: 0,
-//     left: 0,
-//     right: 0,
-//     zIndex: 10,
-//     backgroundColor: '#2D3E50',
-//     height: 56,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     justifyContent: 'space-between',
-//     paddingHorizontal: 16,
-//   },
-//   ticketNumber: {
-//     fontSize: 18,
-//     fontWeight: '600',
-//     color: '#fff',
-//   },
-//   iconGroup: {
-//     flexDirection: 'row',
-//   },
-//   iconButton: {
-//     marginLeft: 10,
-//   },
-//   responseBox: {
-//     marginBottom: 20,
-//     paddingVertical: 6,
-//   },
-//   tagsRow: {
-//     flexDirection: 'row',
-//     flexWrap: 'wrap',
-//     marginTop: 10,
-//   },
-//   tag: {
-//     backgroundColor: '#1E88E5',
-//     paddingHorizontal: 8,
-//     paddingVertical: 2,
-//     borderRadius: 4,
-//     marginRight: 6,
-//     fontWeight: 'bold',
-//     fontSize: 14,
-//     color: '#fff',
-//   },
-//   tagBlue: {
-//     backgroundColor: '#E53935',
-//     paddingHorizontal: 8,
-//     paddingVertical: 2,
-//     borderRadius: 4,
-//     marginRight: 6,
-//     fontWeight: 'bold',
-//     fontSize: 14,
-//     color: '#fff',
-//   },
-//   tagAdd: {
-//     backgroundColor: '#1E88E5',
-//     paddingHorizontal: 8,
-//     paddingVertical: 2,
-//     borderRadius: 4,
-//     fontWeight: 'bold',
-//     fontSize: 14,
-//     color: '#fff',
-//     marginRight: 6,
-//   },
-//   messageBox: {
-//     marginTop: 12,
-//   },
-//   category: {
-//     fontSize: 14,
-//     fontWeight: 'bold',
-//     color: '#666',
-//     marginBottom: 10,
-//   },
-//   address: {
-//     fontSize: 14,
-//     fontWeight: 'bold',
-//     color: '#666',
-//     marginBottom: 8,
-//   },
-//   customer: {
-//     fontSize: 18,
-//     fontWeight: 'bold',
-//     color: '#333',
-//     marginBottom: 10,
-//   },
-//   title: {
-//     color: 'black',
-//     fontWeight: 'bold',
-//     fontSize: 18,
-//   },
-//   Details: {
-//     color: 'black',
-//     textAlign: 'center',
-//     fontWeight: 'bold',
-//     fontSize: 18,
-//   },
-// });
-// Same logic as before...
-// Only styles at the bottom are optimized for mobile
-
 const styles = StyleSheet.create({
   ticketCardBox: {
     backgroundColor: '#fff',
@@ -352,9 +231,8 @@ const styles = StyleSheet.create({
   },
   address: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#1E88E5',
-    textDecorationLine: 'underline',
+    fontWeight: 'bold',
+    color: '#888',
   },
   responseBox: {
     marginTop: 10,
