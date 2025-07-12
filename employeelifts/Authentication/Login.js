@@ -23,12 +23,13 @@ const Login = ({ navigation }) => {
           rememberMe: false,
         },
       );
-      console.log('resssssss', res);
+      console.log('resposeeeeee', res);
       const userData = res.data.empData;
 
       if (res.status === 200) {
         await AsyncStorage.setItem('userId', userData.userId.toString());
-
+        await AsyncStorage.setItem('name', userData.name);
+        await AsyncStorage.setItem('Role', userData.Role.toString());
         Alert.alert('Success', res?.data?.message);
         navigation.navigate('Dashboard');
       }

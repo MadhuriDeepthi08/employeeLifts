@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  Platform,
   TextInput,
   Alert,
 } from 'react-native';
@@ -280,7 +279,7 @@ const Dashboard = ({ navigation }) => {
     switch (status?.toLowerCase()) {
       case 'open':
         return {
-          backgroundColor: '#C49102',
+          backgroundColor: '#FFC107',
           color: '#000000',
         };
       case 'todo':
@@ -295,9 +294,10 @@ const Dashboard = ({ navigation }) => {
         };
       case 'pending':
         return {
-          backgroundColor: '#FFB84D',
-          color: '#000000',
+          backgroundColor: '#6C63FF',
+          color: '#FFFFFF',
         };
+
       case 'done':
         return {
           backgroundColor: '#22C55E',
@@ -311,93 +311,6 @@ const Dashboard = ({ navigation }) => {
     }
   };
 
-  // const renderItem = ({ item }) => (
-  //   <>
-  //     <TouchableOpacity
-  //       style={styles.ticketCard}
-  //       onPress={() =>
-  //         navigation.navigate('ViewTickets', { ticketId: item.ticket_id })
-  //       }
-  //     >
-  //       <View style={styles.ticketHeader}>
-  //         <View style={styles.avatar}>
-  //           <Text style={styles.avatarText}>
-  //             {item.customer_name?.charAt(0).toUpperCase()}
-  //           </Text>
-  //         </View>
-  //         <View style={styles.headerInfo}>
-  //           <Text style={styles.ticketTitle}>{item.customer_name}</Text>
-  //           <Text style={styles.ticketDate}>
-  //             {item.category_name} {item.created_at?.split('T')[0]}
-  //           </Text>
-  //           <Text style={styles.ticketDates}>{item.address}</Text>
-  //         </View>
-  //         <View style={[styles.statusChip, getStatusStyle(item.status_name)]}>
-  //           <Text style={styles.statusText}>{item.status_name}</Text>
-  //         </View>
-  //       </View>
-
-  //       <View style={styles.divider} />
-
-  //       <View style={styles.buttonRow}>
-  //         {item.status_id === 1 && (
-  //           <TouchableOpacity
-  //             style={styles.Assign}
-  //             onPress={() => handleAssignToMe(item)}
-  //           >
-  //             <Text style={styles.buttonText}>Assign to Me</Text>
-  //           </TouchableOpacity>
-  //         )}
-  //         {item.status_id === 2 && (
-  //           <View style={styles.buttonRow}>
-  //             <TouchableOpacity
-  //               style={styles.actionButton}
-  //               onPress={() => {
-  //                 setSelectedTicket(item);
-  //                 setModalVisible(true);
-  //               }}
-  //             >
-  //               <Text style={styles.buttonText}>Arrival Date</Text>
-  //             </TouchableOpacity>
-
-  //             {item.employee_arrival_date && (
-  //               <TouchableOpacity
-  //                 style={styles.actionButton}
-  //                 onPress={() => handleStartWork(item)}
-  //               >
-  //                 <Text style={styles.buttonText}>Start</Text>
-  //               </TouchableOpacity>
-  //             )}
-  //           </View>
-  //         )}
-  //         {item.status_id === 3 && (
-  //           <View style={styles.buttonRow}>
-  //             <TouchableOpacity
-  //               style={styles.actionButton}
-  //               onPress={() => {
-  //                 setSelectedTicket(item);
-  //                 setServiceVisible(true);
-  //               }}
-  //             >
-  //               <Text style={styles.buttonText}>Service Update</Text>
-  //             </TouchableOpacity>
-
-  //             <TouchableOpacity
-  //               style={styles.actionButton}
-  //               onPress={() => {
-  //                 setSelectedTicket(item);
-  //                 setEditVisible(true);
-  //               }}
-  //             >
-  //               <Text style={styles.buttonText}>Edit</Text>
-  //             </TouchableOpacity>
-  //           </View>
-  //         )}
-  //       </View>
-  //     </TouchableOpacity>
-  //   </>
-  // );
-
   const renderItem = ({ item }) => {
     const hasButtons =
       item.status_id === 1 || item.status_id === 2 || item.status_id === 3;
@@ -406,9 +319,11 @@ const Dashboard = ({ navigation }) => {
       <>
         <TouchableOpacity
           style={styles.ticketCard}
-          onPress={() =>
-            navigation.navigate('ViewTickets', { ticketId: item.ticket_id })
-          }
+          onPress={() => {
+            if (item.status_id !== 1) {
+              navigation.navigate('ViewTickets', { ticketId: item.ticket_id });
+            }
+          }}
         >
           <View style={styles.ticketHeader}>
             <View style={styles.avatar}>
@@ -418,9 +333,12 @@ const Dashboard = ({ navigation }) => {
             </View>
             <View style={styles.headerInfo}>
               <Text style={styles.ticketTitle}>{item.customer_name}</Text>
-              <Text style={styles.ticketDate}>
-                {item.category_name} {item.created_at?.split('T')[0]}
+              <Text style={styles.ticketDate}>{item.ticket_id}</Text>
+              <Text style={styles.ticketDate}>{item.category_name}</Text>
+              <Text style={styles.ticketDates}>
+                {item.created_at?.split('T')[0]}
               </Text>
+
               <Text style={styles.ticketDates}>{item.address}</Text>
             </View>
             {(() => {
@@ -441,7 +359,6 @@ const Dashboard = ({ navigation }) => {
           </View>
 
           {hasButtons && <View style={styles.divider} />}
-
           <View style={styles.buttonRow}>
             {item.status_id === 1 && (
               <View style={{ alignItems: 'flex-end', width: '100%' }}>
@@ -453,102 +370,93 @@ const Dashboard = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
             )}
-            {item.status_id === 2 &&
-              (item.employee_arrival_date ? (
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity
-                    style={styles.arrivalButton}
-                    onPress={() => {
-                      setSelectedTicket(item);
-                      setModalVisible(true);
-                    }}
-                  >
-                    <Text style={styles.buttonText}>Arrival Date</Text>
-                  </TouchableOpacity>
+          </View>
 
-                  <TouchableOpacity
-                    style={styles.startButton}
-                    onPress={() => handleStartWork(item)}
-                  >
-                    <Text style={styles.buttonText}>Start</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View style={styles.buttonRow}>
-                  <View style={{ alignItems: 'flex-end', width: '100%' }}>
-                    <TouchableOpacity
-                      style={styles.arrivalDateAlone}
-                      onPress={() => {
-                        setSelectedTicket(item);
-                        setModalVisible(true);
-                      }}
-                    >
-                      <Text style={styles.buttonText}>Arrival Date</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
-
-            {/* {item.status_id === 2 &&
-              (item.employee_arrival_date ? (
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => {
-                      setSelectedTicket(item);
-                      setModalVisible(true);
-                    }}
-                  >
-                    <Text style={styles.buttonText}>Arrival Date</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => handleStartWork(item)}
-                  >
-                    <Text style={styles.buttonText}>Start</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View style={styles.buttonRow}>
-                  <View style={{ alignItems: 'flex-end', width: '100%' }}>
-                    <TouchableOpacity
-                      style={styles.arrivalDateAlone}
-                      onPress={() => {
-                        setSelectedTicket(item);
-                        setModalVisible(true);
-                      }}
-                    >
-                      <Text style={styles.buttonText}>Arrival Date</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))} */}
-
-            {item.status_id === 3 && (
+          {/* {item.status_id === 2 &&
+            (item.employee_arrival_date ? (
               <View style={styles.buttonRow}>
                 <TouchableOpacity
-                  style={styles.serviceButton}
+                  style={styles.arrivalButton}
                   onPress={() => {
                     setSelectedTicket(item);
-                    setServiceVisible(true);
+                    setModalVisible(true);
                   }}
                 >
-                  <Text style={styles.buttonText}>Service Update</Text>
+                  <Text style={styles.buttonText}>Arrival Date</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => {
-                    setSelectedTicket(item);
-                    setEditVisible(true);
-                  }}
+                  style={styles.startButton}
+                  onPress={() => handleStartWork(item)}
                 >
-                  <Text style={styles.buttonText}>Edit</Text>
+                  <Text style={styles.buttonText}>Start</Text>
                 </TouchableOpacity>
               </View>
-            )}
-          </View>
+            ) : (
+              <View style={styles.buttonRow}>
+                <View style={{ alignItems: 'flex-end', width: '100%' }}>
+                  <TouchableOpacity
+                    style={styles.arrivalDateAlone}
+                    onPress={() => {
+                      setSelectedTicket(item);
+                      setModalVisible(true);
+                    }}
+                  >
+                    <Text style={styles.buttonText}>Arrival Date</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))} */}
+          {item.status_id === 2 && (
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={
+                  item.employee_arrival_date
+                    ? styles.arrivalButton
+                    : styles.arrivalDateAlone
+                }
+                onPress={() => {
+                  setSelectedTicket(item);
+                  setModalVisible(true);
+                }}
+              >
+                <Text style={styles.buttonText}>Arrival Date</Text>
+              </TouchableOpacity>
+
+              {item.employee_arrival_date && (
+                <TouchableOpacity
+                  style={styles.startButton}
+                  onPress={() => handleStartWork(item)}
+                >
+                  <Text style={styles.buttonText}>Start</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
+          {item.status_id === 3 && (
+            <View style={styles.inProgressActionRow}>
+              <TouchableOpacity
+                style={styles.serviceButton}
+                onPress={() => {
+                  setSelectedTicket(item);
+                  setServiceVisible(true);
+                }}
+              >
+                <Text style={styles.whiteButtonText}>Service Update</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => {
+                  setSelectedTicket(item);
+                  setEditVisible(true);
+                }}
+              >
+                <Text style={styles.whiteButtonText}>Edit</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </TouchableOpacity>
       </>
     );
@@ -658,13 +566,21 @@ const Dashboard = ({ navigation }) => {
                   style={styles.input}
                 />
               </TouchableOpacity>
-
+              {/* 
               <TextInput
                 placeholder="Reason for Delay"
                 value={reasonForDelay}
                 onChangeText={setReasonForDelay}
                 style={styles.input}
-              />
+              /> */}
+              {selectedTicket?.employee_arrival_date && (
+                <TextInput
+                  placeholder="Reason for Delay"
+                  value={reasonForDelay}
+                  onChangeText={setReasonForDelay}
+                  style={styles.input}
+                />
+              )}
 
               <View style={styles.modalButtonRow}>
                 <TouchableOpacity
@@ -701,7 +617,7 @@ const Dashboard = ({ navigation }) => {
 
               {serviceReason === 'Other' && (
                 <TextInput
-                  placeholder="Custom Reason"
+                  placeholder=" Reason"
                   value={customServiceReason}
                   onChangeText={setCustomServiceReason}
                   style={styles.input}
@@ -788,19 +704,6 @@ const Dashboard = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  // ticketCard: {
-  //   backgroundColor: '#fff',
-  //   marginHorizontal: 10,
-  //   marginVertical: 12,
-  //   padding: 10,
-  //   elevation: 10,
-  //   shadowColor: '#000',
-  //   shadowOffset: { width: 0, height: 4 },
-  //   shadowOpacity: 0.35,
-  //   shadowRadius: 6,
-  //   borderWidth: 1.2,
-  //   borderColor: '#bbb',
-  // },
   ticketCard: {
     backgroundColor: '#fff',
     marginBottom: 12,
@@ -898,25 +801,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-  Assign: {
-    backgroundColor: '#3EB489',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-
-    marginLeft: 'auto',
-  },
-
-  arrivalDateAlone: {
-    backgroundColor: '#3EB489',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-
-    marginLeft: 'auto',
-    alignItems: 'center',
-  },
-
   modalWrapper: {
     flex: 1,
     justifyContent: 'center',
@@ -998,31 +882,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 
-  serviceButton: {
-    flex: 1,
-    backgroundColor: '#3ba6ff',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-    marginRight: 6,
-  },
-
-  editButton: {
-    flex: 1,
-    backgroundColor: '#FFB13B',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-    marginLeft: 6,
-  },
-
-  buttonTexts: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
   bottomBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -1035,7 +894,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   navText: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#888',
     fontWeight: 'bold',
     marginTop: 4,
@@ -1053,41 +912,6 @@ const styles = StyleSheet.create({
 
     borderRadius: 8,
     alignItems: 'center',
-  },
-
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginHorizontal: 16,
-    marginTop: 10,
-    gap: 12,
-  },
-
-  arrivalButton: {
-    flex: 1,
-    backgroundColor: '#9E9E9E',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-    marginRight: 6,
-  },
-
-  startButton: {
-    flex: 1,
-    backgroundColor: '#3EB489',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-    marginLeft: 6,
-  },
-
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
   },
 
   header: {
@@ -1146,6 +970,122 @@ const styles = StyleSheet.create({
     color: '#000',
     backgroundColor: '#f9f9f9',
     paddingHorizontal: 10,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    gap: 10,
+  },
+
+  Assign: {
+    marginLeft: 'auto',
+    backgroundColor: '#3EB489',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+
+  arrivalDateAlone: {
+    marginLeft: 'auto',
+    backgroundColor: '#3EB489',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  arrivalButton: {
+    flex: 1,
+    backgroundColor: '#ff9800',
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginRight: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+
+  startButton: {
+    flex: 1,
+    backgroundColor: '#4caf50',
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginLeft: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+
+  inProgressActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    gap: 10,
+  },
+
+  serviceButton: {
+    flex: 1,
+    backgroundColor: '#FFA726',
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+
+  editButton: {
+    flex: 1,
+    backgroundColor: '#4DB6AC',
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+
+  // serviceButton: {
+  //   flex: 1,
+  //   backgroundColor: '#ff9800',
+  //   paddingVertical: 8,
+  //   borderRadius: 8,
+  //   alignItems: 'center',
+  // },
+
+  // editButton: {
+  //   flex: 1,
+  //   backgroundColor: '#3EB489',
+  //   paddingVertical: 8,
+  //   borderRadius: 8,
+  //   alignItems: 'center',
+  // },
+
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+    letterSpacing: 0.5,
+  },
+
+  whiteButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+    fontSize: 14,
   },
 });
 

@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   navText: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#888',
     fontWeight: 'bold',
     marginTop: 4,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,11 +16,13 @@ import dayjs from 'dayjs';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+
 const EventsCalendar = () => {
   const [events, setEvents] = useState([]);
   const [mode, setMode] = useState('month');
   const [date, setDate] = useState(new Date());
   const [loading, setLoading] = useState(false);
+  const [expandedDates, setExpandedDates] = useState({});
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -36,12 +38,16 @@ const EventsCalendar = () => {
         const mapped = tickets
           .filter(t => t.employee_arrival_date)
           .map(ticket => {
-            const start = new Date(ticket.employee_arrival_date);
-            const end = new Date(start.getTime() + 60 * 60 * 1000);
+            const start = new Date(
+              dayjs(ticket.employee_arrival_date).startOf('day').toISOString(),
+            );
+            const end = new Date(
+              dayjs(ticket.employee_arrival_date).endOf('day').toISOString(),
+            );
             return {
-              title: `${ticket.customer_name} (${ticket.category_name})`,
               start,
               end,
+              title: `Ticket #${ticket.ticket_id}`,
               ticket,
               ticket_id: ticket.ticket_id,
             };
@@ -56,7 +62,7 @@ const EventsCalendar = () => {
     };
 
     fetchEvents();
-  }, []);
+  }, [mode]);
 
   const handleEventPress = event => {
     navigation.navigate('ViewTickets', { ticketId: event.ticket_id });
@@ -104,7 +110,7 @@ const EventsCalendar = () => {
   return (
     <>
       <View style={styles.topHeader}>
-        <Text style={styles.headerTitle}>Events Calendar</Text>
+        <Text style={styles.headerTitle}> Calendar</Text>
       </View>
 
       <GestureHandlerRootView style={styles.wrapper}>
@@ -170,7 +176,9 @@ const EventsCalendar = () => {
                       <Text style={styles.agendaTime}>
                         {dayjs(evt.start).format('h:mm A')}
                       </Text>
-                      <Text style={styles.agendaTitle}>{evt.title}</Text>
+                      <Text style={styles.agendaTitle}>
+                        Ticket #{evt.ticket.ticket_id}
+                      </Text>
                       <Text style={styles.agendaLocation}>
                         {evt.ticket.address}, {evt.ticket.city_name}
                       </Text>
@@ -187,10 +195,207 @@ const EventsCalendar = () => {
             date={date}
             onPressEvent={handleEventPress}
             swipeEnabled
+            maxVisibleEventCount={9999}
             eventCellStyle={{
               backgroundColor: '#00bdaa',
               borderRadius: 6,
+              padding: 2,
+              minHeight: 22,
+              justifyContent: 'center',
             }}
+            calendarCellStyle={{
+              borderWidth: 0.1,
+              borderColor: '#ccc',
+              backgroundColor: '#f8f9fa',
+            }}
+            calendarCellTextStyle={{
+              color: '#000',
+              marginTop: 10,
+              fontSize: 14,
+              fontWeight: 'bold',
+            }}
+            headerContentStyle={{
+              backgroundColor: '#fff',
+              paddingVertical: 6,
+              borderBottomColor: '#CCC',
+              borderBottomWidth: 1,
+            }}
+            hourStyle={{
+              fontSize: 14,
+              color: '#000',
+              fontWeight: '600',
+            }}
+            weekDayLabelStyle={{
+              fontSize: 14,
+              color: 'black',
+              fontWeight: 'bold',
+            }}
+            weekDayHeaderHighlightColor="#000"
+            renderEvent={event => {
+              const dateKey = dayjs(event.start).format('YYYY-MM-DD');
+              const eventsOnDate = events.filter(
+                e => dayjs(e.start).format('YYYY-MM-DD') === dateKey,
+              );
+              const isExpanded = expandedDates[dateKey];
+              const displayEvents = isExpanded
+                ? eventsOnDate
+                : eventsOnDate.slice(0, 1);
+              const showMore = eventsOnDate.length > 1 && !isExpanded;
+
+              return (
+                <View style={{ paddingHorizontal: 4, overflow: 'hidden' }}>
+                  {isExpanded ? (
+                    <ScrollView
+                      style={{ maxHeight: 100 }}
+                      nestedScrollEnabled={true}
+                    >
+                      {displayEvents.map((ev, idx) => (
+                        <TouchableOpacity
+                          key={idx}
+                          onPress={() => handleEventPress(ev)}
+                          style={{
+                            backgroundColor: '#00bdaa',
+                            borderRadius: 6,
+                            paddingVertical: 2,
+                            paddingHorizontal: 4,
+                            marginVertical: 1,
+                          }}
+                        >
+                          <Text
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                            style={{
+                              fontWeight: 'bold',
+                              color: '#fff',
+                              fontSize: 12,
+                              width: 120,
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {ev.ticket.ticket_service_id}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  ) : (
+                    displayEvents.map((ev, idx) => (
+                      <TouchableOpacity
+                        key={idx}
+                        onPress={() => handleEventPress(ev)}
+                        style={{
+                          backgroundColor: '#00bdaa',
+                          borderRadius: 6,
+                          paddingVertical: 2,
+                          paddingHorizontal: 4,
+                          marginVertical: 1,
+                        }}
+                      >
+                        <Text
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          style={{
+                            fontWeight: 'bold',
+                            color: '#fff',
+                            fontSize: 12,
+                            width: 120,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {ev.ticket.ticket_service_id}
+                        </Text>
+                      </TouchableOpacity>
+                    ))
+                  )}
+
+                  {showMore && (
+                    <TouchableOpacity
+                      onPress={() =>
+                        setExpandedDates(prev => ({
+                          ...prev,
+                          [dateKey]: true,
+                        }))
+                      }
+                    >
+                      <Text
+                        style={{
+                          color: 'black',
+                          fontSize: 15,
+                          fontWeight: 'bold',
+                          marginTop: 2,
+                        }}
+                      >
+                        +{eventsOnDate.length - 1} more
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            }}
+
+            // renderEvent={event => {
+            //   const dateKey = dayjs(event.start).format('YYYY-MM-DD');
+            //   const eventsOnDate = events.filter(
+            //     e => dayjs(e.start).format('YYYY-MM-DD') === dateKey,
+            //   );
+            //   const isExpanded = expandedDates[dateKey];
+            //   const displayEvents = isExpanded
+            //     ? eventsOnDate
+            //     : eventsOnDate.slice(0, 1);
+            //   const showMore = eventsOnDate.length > 1 && !isExpanded;
+
+            //   return (
+            //     <View style={{ paddingHorizontal: 4, overflow: 'hidden' }}>
+            //       {displayEvents.map((ev, idx) => (
+            //         <TouchableOpacity
+            //           key={idx}
+            //           onPress={() => handleEventPress(ev)}
+            //           style={{
+            //             backgroundColor: '#00bdaa',
+            //             borderRadius: 6,
+            //             paddingVertical: 2,
+            //             paddingHorizontal: 4,
+            //             marginVertical: 1,
+            //           }}
+            //         >
+            //           <Text
+            //             numberOfLines={1}
+            //             ellipsizeMode="tail"
+            //             style={{
+            //               fontWeight: 'bold',
+            //               color: '#fff',
+            //               fontSize: 12,
+            //               width: 120,
+            //               overflow: 'hidden',
+            //             }}
+            //           >
+            //             {ev.ticket.ticket_service_id}
+            //           </Text>
+            //         </TouchableOpacity>
+            //       ))}
+            //       {showMore && (
+            //         <TouchableOpacity
+            //           onPress={() =>
+            //             setExpandedDates(prev => ({
+            //               ...prev,
+            //               [dateKey]: true,
+            //             }))
+            //           }
+            //         >
+            //           <Text
+            //             style={{
+            //               color: 'red',
+            //               fontSize: 15,
+            //               fontWeight: 'bold',
+            //               marginTop: 2,
+            //             }}
+            //           >
+            //             +{eventsOnDate.length - 1} more
+            //           </Text>
+            //         </TouchableOpacity>
+            //       )}
+            //     </View>
+            //   );
+            // }}
           />
         )}
       </GestureHandlerRootView>
@@ -225,106 +430,95 @@ const EventsCalendar = () => {
           onPress={() => navigation.navigate('ProfileScreen')}
         >
           <FontAwesome name="user" size={30} color="#888" />
-          <Text style={styles.navTexts}>profile</Text>
+          <Text style={styles.navTexts}>Profile</Text>
         </TouchableOpacity>
       </View>
     </>
   );
 };
-
 export default EventsCalendar;
 
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f2f4f7',
+    paddingBottom: 60,
   },
-  header: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  navRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-    gap: 8,
-  },
-  navButton: {
-    backgroundColor: '#eee',
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    minWidth: 50,
-    alignItems: 'center',
-  },
+
   topHeader: {
     backgroundColor: '#3EB489',
     height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 16,
     elevation: 4,
   },
   headerTitle: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginLeft: 12,
   },
-
+  header: {
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    elevation: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  navRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  navButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#e0f2f1',
+  },
   navText: {
-    fontSize: 16,
+    fontSize: 18,
+    color: '#00bdaa',
     fontWeight: 'bold',
-    color: '#3EB489',
   },
   todayButton: {
-    backgroundColor: '#2196f3',
-    paddingVertical: 6,
-    paddingHorizontal: 18,
-    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#00bdaa',
+    borderRadius: 6,
   },
   todayText: {
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: 'bold',
     fontSize: 14,
   },
   titleRow: {
+    marginTop: 10,
     alignItems: 'center',
-
-    marginBottom: 10,
   },
   dateText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#222',
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '600',
   },
   modeRow: {
+    marginTop: 12,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    flexWrap: 'wrap',
-    gap: 6,
   },
   viewButton: {
-    paddingVertical: 6,
     paddingHorizontal: 12,
-    backgroundColor: '#f2f2f2',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 6,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#eee',
   },
   viewButtonActive: {
-    backgroundColor: '#2196f3',
-    borderColor: '#2196f3',
+    backgroundColor: '#00bdaa',
   },
   viewText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#888',
+    fontSize: 14,
+    color: '#555',
+    fontWeight: '600',
   },
   viewTextActive: {
     color: '#fff',
@@ -335,60 +529,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   agendaSection: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#ddd',
   },
   agendaDate: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#222',
-    marginBottom: 8,
+    color: 'black',
+    // marginBottom: 10,
   },
   agendaCard: {
-    backgroundColor: '#fefefe',
+    backgroundColor: '#fff',
     padding: 12,
     borderRadius: 10,
     marginBottom: 10,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 3,
+    elevation: 4,
   },
   agendaTime: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
     color: '#888',
-    marginBottom: 2,
+    fontWeight: 'bold',
   },
   agendaTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#111',
+    marginTop: 4,
+    color: '#888',
   },
   agendaLocation: {
-    fontSize: 13,
-    fontWeight: 'bold',
+    fontSize: 14,
     color: '#888',
-    marginTop: 2,
-  },
-  ticketNumber: {
-    fontSize: 20,
     fontWeight: 'bold',
-    marginLeft: 10,
-  },
-  title: {
-    position: 'absolute',
-    top: 0,
-    width: '100%',
-    backgroundColor: '#3EB489',
-    height: 56,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 100,
+    marginTop: 2,
   },
   bottomBar: {
     flexDirection: 'row',
@@ -397,12 +570,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: '#ddd',
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    elevation: 10,
   },
   navItem: {
     alignItems: 'center',
   },
   navTexts: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#888',
     fontWeight: 'bold',
     marginTop: 4,

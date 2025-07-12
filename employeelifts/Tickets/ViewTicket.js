@@ -2,27 +2,35 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   Linking,
+  FlatList,
+  Image,
+  ActivityIndicator,
+  Alert,
+  SafeAreaView,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  useFocusEffect,
+} from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Feather from 'react-native-vector-icons/Feather';
-
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FormatStatusTrackerData from './FormatStatusTrackerData';
+import AddConversation from './Conversation';
 
-const ViewTickets = ({ navigation }) => {
-  const [tickets, setTickets] = useState([]);
-  const [userId, setUserId] = useState(null);
-
+const ViewTickets = () => {
+  const navigation = useNavigation();
   const route = useRoute();
   const ticketId = route.params?.ticketId;
+
+  const [ticket, setTicket] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => {
@@ -35,256 +43,341 @@ const ViewTickets = ({ navigation }) => {
     init();
   }, []);
 
-  const fetchTickets = useCallback(async () => {
-    if (!userId) return;
+  const fetchTicket = useCallback(async () => {
+    if (!userId || !ticketId) return;
     try {
       const response = await axios.get(
         `http://10.0.2.2:5000/api/tickets/${ticketId}`,
       );
-      console.log(' ticjketresponseeeeeeee', response);
-      setTickets([response.data.list]);
-    } catch (err) {
-      console.error('Error fetching ticket:', err);
+      setTicket(response.data.list);
+    } catch (error) {
+      console.error('Error fetching ticket:', error);
+      Alert.alert('Error', 'Unable to load ticket');
+      navigation.goBack();
+    } finally {
+      setLoading(false);
     }
-  }, [ticketId, userId]);
+  }, [ticketId, userId, navigation]);
 
-  useEffect(() => {
-    fetchTickets();
-  }, [fetchTickets]);
-
-  const openInMaps = address => {
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      address,
-    )}`;
-    Linking.openURL(url).catch(err =>
-      console.error('Failed to open maps:', err),
-    );
-  };
-
-  const renderTicket = ({ item }) => (
-    <>
-      <View>
-        {item.status_tracker && (
-          <View style={styles.trackerWrapper}>
-            <FormatStatusTrackerData trackingData={item.status_tracker} />
-          </View>
-        )}
-
-        <View style={styles.ticketCardBox}>
-          <View>
-            <View style={styles.content}>
-              <View style={styles.messageBox}>
-                <Text style={styles.customer}>{item.customer_name}</Text>
-                <Text style={styles.category}>
-                  {item.category_name} On {item.created_at?.split('T')[0]}
-                </Text>
-
-                <TouchableOpacity
-                  onPress={() =>
-                    openInMaps(
-                      `${item.address || ''}, ${item.region_name}, ${
-                        item.city_name
-                      }, ${item.state_name}`,
-                    )
-                  }
-                >
-                  <Text style={[styles.address]}>
-                    {item.state_name}, {item.city_name}, {item.region_name}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.responseBox}>
-                <View style={styles.tagsRow}>
-                  <Text style={styles.tag}>{item.customer_phone}</Text>
-                  <Text style={styles.tagBlue}>{item.description}</Text>
-                  <Text style={styles.tagAdd}>{item.customer_email}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
-    </>
+  useFocusEffect(
+    useCallback(() => {
+      fetchTicket();
+    }, [fetchTicket]),
   );
 
+  const handleMediaOpen = fileName => {
+    const url = `https://your-cdn-domain.com/${fileName}`;
+    Linking.openURL(url);
+  };
+
+  if (loading || !ticket) {
+    return <ActivityIndicator size="large" style={{ flex: 1 }} />;
+  }
+  const openMap = (address, city, state) => {
+    const query = encodeURIComponent(`${address}, ${city}, ${state}`);
+    const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
+    Linking.openURL(url);
+  };
+
   return (
-    <>
+    <SafeAreaView style={styles.safeContainer}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={24} color="#f9f9f9" />
+          <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.ticketNumber}>Ticket Details</Text>
-      </View>
-      <View style={styles.iconGroup}>
-        <TouchableOpacity style={styles.iconButton}>
-          <MaterialIcons name="star-border" size={20} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton}>
-          <Feather name="edit-2" size={18} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton}>
-          <MaterialIcons name="more-vert" size={20} color="#fff" />
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Ticket Details</Text>
       </View>
 
-      <FlatList
-        contentContainerStyle={{ paddingTop: 60, paddingBottom: 100 }}
-        data={tickets}
-        renderItem={renderTicket}
-        keyExtractor={item => item.ticket_id.toString()}
-      />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {ticket.status_tracker && (
+          <View style={styles.card}>
+            <FormatStatusTrackerData trackingData={ticket.status_tracker} />
+          </View>
+        )}
+        <View style={styles.ticketCard}>
+          <View style={styles.ticketHeader}>
+            <Text style={styles.customerName}>{ticket.customer_name}</Text>
+            <View style={styles.badgeNew}>
+              <Text style={styles.badgeText}>{ticket.status_name}</Text>
+            </View>
+          </View>
 
-      <View style={styles.bottomBar}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Dashboard')}
-        >
-          <FontAwesome name="home" size={30} color="#3EB489" />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
+          <View style={styles.rowBetween}>
+            <Text style={styles.Text}>
+              {ticket.category_name}, {ticket.created_at?.split('T')[0]}
+            </Text>
+            <TouchableOpacity
+              onPress={() =>
+                openMap(ticket.address, ticket.city_name, ticket.state_name)
+              }
+            >
+              <Text style={styles.Text}>
+                {ticket.address}, {ticket.city_name}, {ticket.state_name}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                openMap(ticket.address, ticket.city_name, ticket.state_name)
+              }
+              style={styles.viewMapButton}
+            >
+              <Text style={styles.viewMapText}>
+                View Location on Google Maps
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRowContainer}>
+            <Text
+              style={styles.phoneText}
+              numberOfLines={1}
+              ellipsizeMode="clip"
+            >
+              {ticket.customer_phone}
+            </Text>
 
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('EventsCalendar')}
-        >
-          <Ionicons name="calendar" size={30} color="#888" />
-          <Text style={styles.navText}>EventsCalendar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('EventsOverview')}
-        >
-          <MaterialIcons name="event" size={30} color="#888" />
-          <Text style={styles.navText}>Events overview</Text>
-        </TouchableOpacity>
+            <Text
+              style={styles.emailText}
+              numberOfLines={1}
+              ellipsizeMode="clip"
+            >
+              {ticket.customer_email}
+            </Text>
 
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('ProfileScreen')}
-        >
-          <FontAwesome name="user" size={30} color="#888" />
-          <Text style={styles.navText}>profile</Text>
-        </TouchableOpacity>
-      </View>
-    </>
+            <Text
+              style={styles.descriptionText}
+              numberOfLines={1}
+              ellipsizeMode="clip"
+            >
+              {ticket.description}
+            </Text>
+          </View>
+          {ticket.customer_reject_reason && (
+            <Text style={styles.subText}>
+              Reject: {ticket.customer_reject_reason}
+            </Text>
+          )}
+          {ticket.pending_reason && (
+            <Text style={styles.subText}>Pending: {ticket.pending_reason}</Text>
+          )}
+          {ticket.feedback && (
+            <Text style={styles.subText}> Feedback: {ticket.feedback}</Text>
+          )}
+          {ticket.rating && (
+            <Text style={styles.subText}> Rating: {ticket.rating}/5</Text>
+          )}
+        </View>
+
+        <View style={styles.cards}>
+          <AddConversation
+            user={{ userId }}
+            data={ticket}
+            customerComments={ticket?.customer_comments}
+            fetchData={fetchTicket}
+          />
+        </View>
+
+        <View style={styles.Media}>
+          <Text style={styles.sectionTitle}>Media</Text>
+          {ticket?.multimedia?.length ? (
+            <FlatList
+              data={ticket.multimedia}
+              horizontal
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => handleMediaOpen(item.file_name)}
+                >
+                  {item.file_type === 'Photo' ? (
+                    <Image
+                      source={{
+                        uri: `https://your-cdn-domain.com/${item.file_name}`,
+                      }}
+                      style={styles.media}
+                    />
+                  ) : (
+                    <Text style={styles.video}>[Video] {item.file_name}</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          ) : (
+            <Text style={styles.info}>No Media Available</Text>
+          )}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  ticketCardBox: {
-    backgroundColor: '#fff',
-    marginHorizontal: 12,
-    marginVertical: 10,
-    padding: 12,
-    elevation: 3,
-    borderRadius: 10,
-    borderColor: '#bbb',
-    borderWidth: 1,
-  },
-  content: {
-    marginTop: 10,
-    marginBottom: 10,
-    marginHorizontal: 30,
-  },
-
-  iconGroup: {
+  safeContainer: { flex: 1, backgroundColor: '#f2f2f2' },
+  header: {
+    backgroundColor: '#3EB489',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  iconButton: {
-    marginLeft: 12,
-  },
-  ticketNumber: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginLeft: 10,
-  },
-
-  header: {
+    elevation: 4,
+    zIndex: 999,
     position: 'absolute',
     top: 0,
     width: '100%',
-    backgroundColor: '#3EB489',
-    height: 56,
-    paddingHorizontal: 16,
+  },
+  headerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    marginLeft: 10,
+    fontWeight: 'bold',
+  },
+  scrollContent: { padding: 12, paddingBottom: 30, paddingTop: 70 },
+  ticketHeader: {
     flexDirection: 'row',
-
+    justifyContent: 'space-between',
     alignItems: 'center',
-    zIndex: 100,
-  },
-  messageBox: {
-    marginBottom: 10,
-  },
-  customer: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#111',
-    marginBottom: 4,
-  },
-  category: {
-    fontSize: 16,
-    color: '#888',
-    fontWeight: 'bold',
     marginBottom: 8,
   },
-  address: {
-    fontSize: 14,
+  customerName: {
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#888',
+    color: 'black',
+    marginHorizontal: 10,
   },
-  responseBox: {
-    marginTop: 10,
+  badgeNew: {
+    backgroundColor: '#FF6B6B',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
-  tagsRow: {
+  badgeText: { fontSize: 12, fontWeight: 'bold', color: '#FFFFFF' },
+  infoRowContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     gap: 6,
   },
-  tag: {
-    backgroundColor: '#1976D2',
+  phoneText: {
+    flex: 1,
+    fontSize: 14,
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 13,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
+    backgroundColor: '#2196F3',
+    padding: 8,
+    borderRadius: 8,
+    marginRight: 6,
+    minWidth: 0,
+    flexShrink: 1,
   },
-  tagBlue: {
-    backgroundColor: '#D32F2F',
+  emailText: {
+    flex: 1,
+    fontSize: 14,
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 13,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-  },
-  tagAdd: {
     backgroundColor: '#3EB489',
+    padding: 8,
+    borderRadius: 8,
+    marginRight: 6,
+    minWidth: 0,
+    flexShrink: 1,
+  },
+  descriptionText: {
+    flex: 1,
+    fontSize: 14,
     color: '#fff',
     fontWeight: 'bold',
+    backgroundColor: '#FF9800',
+    padding: 8,
+    borderRadius: 8,
+    textAlign: 'center',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#bbb',
+    marginVertical: 12,
+  },
+  Text: {
     fontSize: 13,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-  },
-  bottomBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-  },
-  navItem: {
-    alignItems: 'center',
-  },
-  navText: {
-    fontSize: 12,
-    color: '#888',
+    color: '#444',
     fontWeight: 'bold',
-    marginTop: 4,
+    marginBottom: 8,
+    backgroundColor: '#f9fbe7',
+    padding: 10,
+    borderRadius: 8,
+    width: '100%',
+  },
+  cards: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 10,
+    elevation: 2,
+  },
+  Media: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 25,
+    elevation: 2,
+  },
+  ticketCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 15,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    marginHorizontal: 20,
+    color: 'black',
+  },
+  info: {
+    fontSize: 14,
+    color: '#888',
+    marginTop: 10,
+    marginHorizontal: 20,
+    fontWeight: 'bold',
+  },
+  media: {
+    width: 100,
+    height: 100,
+    marginRight: 10,
+    borderRadius: 10,
+  },
+  video: {
+    padding: 10,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 10,
+    marginRight: 10,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  subText: {
+    fontSize: 14,
+    color: '#333',
+    backgroundColor: '#e0f7fa',
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: 6,
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  viewMapButton: {
+    marginTop: 6,
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+    marginHorizontal: 10,
+  },
+  viewMapText: {
+    color: '#1E88E5',
+    fontWeight: 'bold',
+    fontSize: 13,
   },
 });
 

@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9F9F9',
     paddingHorizontal: 20,
-    justifyContent: 'center',
+    marginTop: 100,
   },
   title: {
     fontSize: 16,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#444',
+    color: '#888',
     textAlign: 'center',
     marginBottom: 30,
     paddingHorizontal: 10,
@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#3EB489',
     paddingVertical: 10,
     borderRadius: 25,
+    marginTop: 10,
     alignItems: 'center',
     elevation: 3,
     width: '70%',
