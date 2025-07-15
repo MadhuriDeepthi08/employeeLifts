@@ -12,6 +12,7 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
+import { BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StatusTracker from './StatusTracker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -45,54 +46,77 @@ const Dashboard = ({ navigation }) => {
   const [serviceReason, setServiceReason] = useState('');
   const [customServiceReason, setCustomServiceReason] = useState('');
   const [userId, setUserId] = useState(null);
-
   const [editStatus, setEditStatus] = useState('');
   const [editReason, setEditReason] = useState('');
   const [statusFilter, setStatusFilter] = useState(null);
+  const [clientId, setClientId] = useState(null);
   const [ticketStatuses, setTicketStatuses] = useState([]);
 
   useEffect(() => {
-    const loadUserId = async () => {
-      const id = await AsyncStorage.getItem('userId');
-      setUserId(id);
-    };
-
-    const fetchStatusOptions = async () => {
+    const loadDataAndFetch = async () => {
       try {
-        const res = await axios.get('http://10.0.2.2:5000/api/ticket-statuses');
-        setTicketStatuses(res?.data || []);
+        const id = await AsyncStorage.getItem('userId');
+        const cid = await AsyncStorage.getItem('clientId');
+
+        setUserId(id);
+        setClientId(cid);
+
+        // Fetch ticket statuses
+        const statusRes = await axios.get(`${BASE_URL}/api/ticket-statuses`, {
+          headers: {
+            'x-client-id': cid,
+          },
+        });
+        setTicketStatuses(statusRes?.data || []);
+
+        // Fetch tickets
+        const endpoint =
+          statusFilter === '1' || statusFilter === null
+            ? `${BASE_URL}/api/tickets`
+            : `${BASE_URL}/api/tickets/employee/${id}`;
+
+        const ticketRes = await axios.get(endpoint, {
+          params: { status_id: statusFilter },
+          headers: {
+            'x-client-id': cid,
+          },
+        });
+        setTickets(ticketRes?.data?.list || []);
       } catch (err) {
-        console.error('Failed to fetch statuses:', err);
+        console.error('Failed to load data:', err);
+        setTickets([]);
       }
     };
 
-    loadUserId();
-    fetchStatusOptions();
-  }, []);
+    loadDataAndFetch();
+  }, [statusFilter]);
 
   const fetchTickets = useCallback(async () => {
-    if (!userId) return;
+    if (!userId || !clientId) return;
     try {
       const endpoint =
         statusFilter === '1' || statusFilter === null
-          ? `http://10.0.2.2:5000/api/tickets`
-          : `http://10.0.2.2:5000/api/tickets/employee/${userId}`;
+          ? `${BASE_URL}/api/tickets`
+          : `${BASE_URL}/api/tickets/employee/${userId}`;
 
       const response = await axios.get(endpoint, {
         params: { status_id: statusFilter },
+        headers: {
+          'x-client-id': clientId,
+        },
       });
       setTickets(response?.data?.list || []);
     } catch (error) {
       console.error(error);
       setTickets([]);
     }
-  }, [userId, statusFilter]);
+  }, [userId, clientId, statusFilter]);
 
   useEffect(() => {
-    if (userId) {
+    if (userId && clientId) {
       fetchTickets();
     }
-  }, [userId, statusFilter, fetchTickets]);
+  }, [userId, clientId, statusFilter, fetchTickets]);
 
   const handleAssignToMe = async item => {
     const userStr = await AsyncStorage.getItem('userId');
@@ -114,7 +138,7 @@ const Dashboard = ({ navigation }) => {
       employee_arrival_date: null,
     };
     try {
-      await axios.put(`http://10.0.2.2:5000/api/tickets/${item.ticket_id}`, {
+      await axios.put(`${BASE_URL}/api/tickets/${item.ticket_id}`, {
         ticketData,
       });
       fetchTickets();
@@ -141,7 +165,7 @@ const Dashboard = ({ navigation }) => {
       status_tracker: trackerData,
     };
     try {
-      await axios.put(`http://10.0.2.2:5000/api/tickets/${item.ticket_id}`, {
+      await axios.put(`${BASE_URL}/api/tickets/${item.ticket_id}`, {
         ticketData,
       });
       fetchTickets();
@@ -160,11 +184,11 @@ const Dashboard = ({ navigation }) => {
     const msg = reasonForDelay
       ? `Engineer will arrive on ${arrivalDate.toDateString()} at ${
           arrivalTime.toTimeString().split(' ')[0]
-        } 
-          // due to ${reasonForDelay}`
+        } due to ${reasonForDelay}`
       : `Engineer will arrive on ${arrivalDate.toDateString()} at ${
           arrivalTime.toTimeString().split(' ')[0]
         }`;
+
     const trackerData = StatusTracker(
       selectedTicket.status_tracker,
       msg,
@@ -180,10 +204,9 @@ const Dashboard = ({ navigation }) => {
       status_tracker: trackerData,
     };
     try {
-      await axios.put(
-        `http://10.0.2.2:5000/api/tickets/${selectedTicket.ticket_id}`,
-        { ticketData },
-      );
+      await axios.put(`${BASE_URL}/api/tickets/${selectedTicket.ticket_id}`, {
+        ticketData,
+      });
       fetchTickets();
       setModalVisible(false);
       Alert.alert('Success', 'Arrival date updated');
@@ -199,6 +222,7 @@ const Dashboard = ({ navigation }) => {
       serviceReason === 'Other'
         ? customServiceReason
         : serviceReason || 'Service Update from Employee';
+
     const trackerData = StatusTracker(
       selectedTicket.status_tracker,
       reason,
@@ -214,10 +238,9 @@ const Dashboard = ({ navigation }) => {
       status_id: 3,
     };
     try {
-      await axios.put(
-        `http://10.0.2.2:5000/api/tickets/${selectedTicket.ticket_id}`,
-        { ticketData },
-      );
+      await axios.put(`${BASE_URL}/api/tickets/${selectedTicket.ticket_id}`, {
+        ticketData,
+      });
       fetchTickets();
       setServiceVisible(false);
       setServiceReason('');
@@ -262,10 +285,9 @@ const Dashboard = ({ navigation }) => {
     }
 
     try {
-      await axios.put(
-        `http://10.0.2.2:5000/api/tickets/${selectedTicket.ticket_id}`,
-        { ticketData },
-      );
+      await axios.put(`${BASE_URL}/api/tickets/${selectedTicket.ticket_id}`, {
+        ticketData,
+      });
       fetchTickets();
       setEditVisible(false);
       setEditStatus('');
@@ -275,6 +297,256 @@ const Dashboard = ({ navigation }) => {
       Alert.alert('Error', 'Failed to update status');
     }
   };
+
+  // const Dashboard = ({ navigation }) => {
+  //   const [tickets, setTickets] = useState([]);
+  //   const [modalVisible, setModalVisible] = useState(false);
+  //   const [editVisible, setEditVisible] = useState(false);
+  //   const [serviceVisible, setServiceVisible] = useState(false);
+  //   const [selectedTicket, setSelectedTicket] = useState(null);
+  //   const [arrivalDate, setArrivalDate] = useState(new Date());
+  //   const [arrivalTime, setArrivalTime] = useState(new Date());
+  //   const [showDatePicker, setShowDatePicker] = useState(false);
+  //   const [showTimePicker, setShowTimePicker] = useState(false);
+  //   const [reasonForDelay, setReasonForDelay] = useState('');
+  //   const [serviceReason, setServiceReason] = useState('');
+  //   const [customServiceReason, setCustomServiceReason] = useState('');
+  //   const [userId, setUserId] = useState(null);
+
+  //   const [editStatus, setEditStatus] = useState('');
+  //   const [editReason, setEditReason] = useState('');
+  //   const [statusFilter, setStatusFilter] = useState(null);
+
+  //   const [clientId, setClientId] = useState(null);
+  //   const [ticketStatuses, setTicketStatuses] = useState([]);
+
+  //   useEffect(() => {
+  //     const loadUserId = async () => {
+  //       const id = await AsyncStorage.getItem('userId');
+  //       const Id = await AsyncStorage.getItem('clientId');
+  //       setUserId(id);
+  //       setClientId(Id);
+  //     };
+
+  //     const fetchStatusOptions = async () => {
+  //       try {
+  //         const res = await axios.get(`${BASE_URL}/api/ticket-statuses`, {
+  //           headers: {
+  //             'x-client-id': clientId,
+  //           },
+  //         });
+  //         setTicketStatuses(res?.data || []);
+  //       } catch (err) {
+  //         console.error('Failed to fetch statuses:', err);
+  //       }
+  //     };
+
+  //     loadUserId();
+  //     fetchStatusOptions();
+  //   }, [clientId]);
+
+  //   const fetchTickets = useCallback(async () => {
+  //     if (!userId) return;
+  //     try {
+  //       const endpoint =
+  //         statusFilter === '1' || statusFilter === null
+  //           ? `${BASE_URL}/api/tickets`
+  //           : `${BASE_URL}/api/tickets/employee/${userId}`;
+
+  //       const response = await axios.get(endpoint, {
+  //         params: { status_id: statusFilter },
+  //       });
+  //       setTickets(response?.data?.list || []);
+  //     } catch (error) {
+  //       console.error(error);
+  //       setTickets([]);
+  //     }
+  //   }, [userId, statusFilter]);
+
+  //   useEffect(() => {
+  //     if (userId) {
+  //       fetchTickets();
+  //     }
+  //   }, [userId, statusFilter, fetchTickets]);
+
+  //   const handleAssignToMe = async item => {
+  //     const userStr = await AsyncStorage.getItem('userId');
+  //     const user = JSON.parse(userStr);
+  //     const trackerData = StatusTracker(
+  //       item.status_tracker,
+  //       'Engineer is Assigned',
+  //       'In-Progress',
+  //       2,
+  //       user.name,
+  //       user.name,
+  //       user.phone || '',
+  //     );
+  //     const ticketData = {
+  //       assigned_employee_id: userId,
+  //       status_id: 2,
+  //       priority_rank: 'High',
+  //       status_tracker: trackerData,
+  //       employee_arrival_date: null,
+  //     };
+  //     try {
+  //       await axios.put(`${BASE_URL}/api/tickets/${item.ticket_id}`, {
+  //         ticketData,
+  //       });
+  //       fetchTickets();
+  //       Alert.alert('Success', 'Ticket assigned successfully');
+  //     } catch (err) {
+  //       Alert.alert('Error', 'Failed to assign ticket');
+  //     }
+  //   };
+
+  //   const handleStartWork = async item => {
+  //     const userStr = await AsyncStorage.getItem('userId');
+  //     const user = JSON.parse(userStr);
+  //     const trackerData = StatusTracker(
+  //       item.status_tracker,
+  //       'Work started',
+  //       'In-Progress',
+  //       3,
+  //       user.name,
+  //       item.employee_name,
+  //       item.employee_phone,
+  //     );
+  //     const ticketData = {
+  //       status_id: 3,
+  //       status_tracker: trackerData,
+  //     };
+  //     try {
+  //       await axios.put(`${BASE_URL}/api/tickets/${item.ticket_id}`, {
+  //         ticketData,
+  //       });
+  //       fetchTickets();
+  //       Alert.alert('Success', 'Work started');
+  //     } catch (err) {
+  //       Alert.alert('Error', 'Failed to start work');
+  //     }
+  //   };
+
+  //   const handleSaveArrival = async () => {
+  //     const userStr = await AsyncStorage.getItem('userId');
+  //     const user = JSON.parse(userStr);
+  //     const formattedDate = `${arrivalDate.toISOString().split('T')[0]}T${
+  //       arrivalTime.toTimeString().split(' ')[0]
+  //     }`;
+  //     const msg = reasonForDelay
+  //       ? `Engineer will arrive on ${arrivalDate.toDateString()} at ${
+  //           arrivalTime.toTimeString().split(' ')[0]
+  //         }
+  //           // due to ${reasonForDelay}`
+  //       : `Engineer will arrive on ${arrivalDate.toDateString()} at ${
+  //           arrivalTime.toTimeString().split(' ')[0]
+  //         }`;
+  //     const trackerData = StatusTracker(
+  //       selectedTicket.status_tracker,
+  //       msg,
+  //       'Todo',
+  //       3,
+  //       user.name,
+  //       selectedTicket.employee_name,
+  //       selectedTicket.employee_phone,
+  //     );
+
+  //     const ticketData = {
+  //       employee_arrival_date: formattedDate,
+  //       status_tracker: trackerData,
+  //     };
+  //     try {
+  //       await axios.put(`${BASE_URL}/api/tickets/${selectedTicket.ticket_id}`, {
+  //         ticketData,
+  //       });
+  //       fetchTickets();
+  //       setModalVisible(false);
+  //       Alert.alert('Success', 'Arrival date updated');
+  //     } catch (err) {
+  //       Alert.alert('Error', 'Failed to update arrival');
+  //     }
+  //   };
+
+  //   const handleServiceUpdate = async () => {
+  //     const userStr = await AsyncStorage.getItem('userId');
+  //     const user = JSON.parse(userStr);
+  //     const reason =
+  //       serviceReason === 'Other'
+  //         ? customServiceReason
+  //         : serviceReason || 'Service Update from Employee';
+  //     const trackerData = StatusTracker(
+  //       selectedTicket.status_tracker,
+  //       reason,
+  //       'In Progress',
+  //       3,
+  //       user.name,
+  //       selectedTicket.employee_name,
+  //       selectedTicket.employee_phone || '',
+  //     );
+
+  //     const ticketData = {
+  //       status_tracker: trackerData,
+  //       status_id: 3,
+  //     };
+  //     try {
+  //       await axios.put(`${BASE_URL}/api/tickets/${selectedTicket.ticket_id}`, {
+  //         ticketData,
+  //       });
+  //       fetchTickets();
+  //       setServiceVisible(false);
+  //       setServiceReason('');
+  //       setCustomServiceReason('');
+  //       Alert.alert('Success', 'Service updated');
+  //     } catch (err) {
+  //       Alert.alert('Error', 'Failed to update service');
+  //     }
+  //   };
+
+  //   const handleEditUpdate = async () => {
+  //     const userStr = await AsyncStorage.getItem('userId');
+  //     const user = JSON.parse(userStr);
+
+  //     let status_id = 3;
+  //     if (editStatus === 'Done') status_id = 4;
+  //     else if (editStatus === 'On Hold') status_id = 5;
+  //     else if (editStatus === 'Pending') status_id = 6;
+
+  //     const reasonMsg =
+  //       editStatus === 'Done'
+  //         ? 'Service Completed'
+  //         : `${editStatus} - ${editReason}`;
+
+  //     const trackerData = StatusTracker(
+  //       selectedTicket.status_tracker,
+  //       reasonMsg,
+  //       editStatus,
+  //       status_id,
+  //       user.name,
+  //       selectedTicket.employee_name,
+  //       selectedTicket.employee_phone || '',
+  //     );
+
+  //     const ticketData = {
+  //       status_id,
+  //       status_tracker: trackerData,
+  //     };
+
+  //     if (editStatus === 'On Hold' || editStatus === 'Pending') {
+  //       ticketData.pending_reason = editReason;
+  //     }
+
+  //     try {
+  //       await axios.put(`${BASE_URL}/api/tickets/${selectedTicket.ticket_id}`, {
+  //         ticketData,
+  //       });
+  //       fetchTickets();
+  //       setEditVisible(false);
+  //       setEditStatus('');
+  //       setEditReason('');
+  //       Alert.alert('Success', 'Ticket status updated');
+  //     } catch (err) {
+  //       Alert.alert('Error', 'Failed to update status');
+  //     }
+  //   };
   const getStatusChipStyle = status => {
     switch (status?.toLowerCase()) {
       case 'open':

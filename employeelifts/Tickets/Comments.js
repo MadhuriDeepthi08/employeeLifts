@@ -11,7 +11,7 @@ import {
 import axios from 'axios';
 import AddConversation from './Conversation';
 import CommentsHistory from './CommentsHistory';
-
+import { BASE_URL } from '@env';
 const AddComments = ({ ticket, user, fetchData, fetchError, fetchSuccess }) => {
   const [commentData, setCommentData] = useState('');
 
@@ -39,7 +39,7 @@ const AddComments = ({ ticket, user, fetchData, fetchError, fetchSuccess }) => {
 
     try {
       const response = await axios.put(
-        `http://10.0.2.2:5000/api/tickets/${ticket?.ticket_id}`,
+        `${BASE_URL}/api/tickets/${ticket?.ticket_id}`,
         { ticketData },
       );
       fetchData();

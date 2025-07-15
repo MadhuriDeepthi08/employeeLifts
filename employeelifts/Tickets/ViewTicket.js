@@ -13,6 +13,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import axios from 'axios';
+import { BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   useNavigation,
@@ -23,6 +24,46 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FormatStatusTrackerData from './FormatStatusTrackerData';
 import AddConversation from './Conversation';
 
+// const ViewTickets = () => {
+//   const navigation = useNavigation();
+//   const route = useRoute();
+//   const ticketId = route.params?.ticketId;
+
+//   const [ticket, setTicket] = useState(null);
+//   const [userId, setUserId] = useState(null);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     const init = async () => {
+//       const userData = await AsyncStorage.getItem('userId');
+//       if (userData) {
+//         const parsed = JSON.parse(userData);
+//         setUserId(parsed);
+//       }
+//     };
+//     init();
+//   }, []);
+
+//   const fetchTicket = useCallback(async () => {
+//     if (!userId || !ticketId) return;
+//     try {
+//       const response = await axios.get(`${BASE_URL}/api/tickets/${ticketId}`);
+//       setTicket(response.data.list);
+//     } catch (error) {
+//       console.error('Error fetching ticket:', error);
+//       Alert.alert('Error', 'Unable to load ticket');
+//       navigation.goBack();
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, [ticketId, userId, navigation]);
+
+//   useFocusEffect(
+//     useCallback(() => {
+//       fetchTicket();
+//     }, [fetchTicket]),
+//   );
+
 const ViewTickets = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -30,25 +71,34 @@ const ViewTickets = () => {
 
   const [ticket, setTicket] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [clientId, setClientId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => {
-      const userData = await AsyncStorage.getItem('userId');
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        setUserId(parsed);
+      try {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        const storedClientId = await AsyncStorage.getItem('clientId');
+        setUserId(storedUserId);
+        setClientId(storedClientId);
+      } catch (err) {
+        console.error('Error loading IDs:', err);
       }
     };
     init();
   }, []);
 
   const fetchTicket = useCallback(async () => {
-    if (!userId || !ticketId) return;
+    if (!userId || !ticketId || !clientId) return;
+
     try {
-      const response = await axios.get(
-        `http://10.0.2.2:5000/api/tickets/${ticketId}`,
-      );
+      const response = await axios.get(`${BASE_URL}/api/tickets/${ticketId}`, {
+        headers: {
+          'x-client-id': clientId,
+        },
+      });
+
+      console.log('Fetched ticket:', response.data);
       setTicket(response.data.list);
     } catch (error) {
       console.error('Error fetching ticket:', error);
@@ -57,14 +107,13 @@ const ViewTickets = () => {
     } finally {
       setLoading(false);
     }
-  }, [ticketId, userId, navigation]);
+  }, [ticketId, userId, clientId, navigation]);
 
   useFocusEffect(
     useCallback(() => {
       fetchTicket();
     }, [fetchTicket]),
   );
-
   const handleMediaOpen = fileName => {
     const url = `https://your-cdn-domain.com/${fileName}`;
     Linking.openURL(url);
@@ -114,6 +163,7 @@ const ViewTickets = () => {
               <Text style={styles.Text}>
                 {ticket.address}, {ticket.city_name}, {ticket.state_name}
               </Text>
+              <Text style={styles.Text}>{ticket.asset_name}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() =>
@@ -261,7 +311,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     fontWeight: 'bold',
-    backgroundColor: '#2196F3',
+    backgroundColor: '#4CAF50',
     padding: 8,
     borderRadius: 8,
     marginRight: 6,
@@ -273,7 +323,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     fontWeight: 'bold',
-    backgroundColor: '#3EB489',
+    backgroundColor: '#009688',
     padding: 8,
     borderRadius: 8,
     marginRight: 6,
@@ -285,7 +335,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     fontWeight: 'bold',
-    backgroundColor: '#FF9800',
+    backgroundColor: '#673AB7',
     padding: 8,
     borderRadius: 8,
     textAlign: 'center',
@@ -375,7 +425,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   viewMapText: {
-    color: '#1E88E5',
+    color: '#888',
     fontWeight: 'bold',
     fontSize: 13,
   },

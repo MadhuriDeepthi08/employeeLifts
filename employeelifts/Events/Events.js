@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import axios from 'axios';
+import { BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -15,29 +16,81 @@ import { Picker } from '@react-native-picker/picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+// const EventsOverview = () => {
+//   const [eventType, setEventType] = useState('Scheduled');
+//   const [rows, setRows] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [userId, setUserId] = useState(null);
+//   const navigation = useNavigation();
+
+//   useEffect(() => {
+//     const loadUserId = async () => {
+//       const id = await AsyncStorage.getItem('userId');
+//       setUserId(id);
+//     };
+//     loadUserId();
+//   }, []);
+
+//   const fetchTickets = useCallback(async () => {
+//     if (!userId) return;
+//     try {
+//       setLoading(true);
+//       const response = await axios.get(
+//         `${BASE_URL}/api/tickets/employee/${userId}`,
+//         { params: { status_id: 2 } },
+//       );
+//       const tickets = response.data?.list || [];
+
+//       const scheduledTickets = tickets.filter(t => t.employee_arrival_date);
+//       const unscheduledTickets = tickets.filter(t => !t.employee_arrival_date);
+
+//       setRows(
+//         eventType === 'Scheduled' ? scheduledTickets : unscheduledTickets,
+//       );
+//     } catch (error) {
+//       console.error('Error fetching tickets:', error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, [userId, eventType]);
+
+//   useEffect(() => {
+//     if (userId) fetchTickets();
+//   }, [fetchTickets, userId, eventType]);
+
 const EventsOverview = () => {
   const [eventType, setEventType] = useState('Scheduled');
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [clientId, setClientId] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
-    const loadUserId = async () => {
+    const loadFromStorage = async () => {
       const id = await AsyncStorage.getItem('userId');
+      const client = await AsyncStorage.getItem('clientId');
       setUserId(id);
+      setClientId(client);
     };
-    loadUserId();
+    loadFromStorage();
   }, []);
 
   const fetchTickets = useCallback(async () => {
-    if (!userId) return;
+    if (!userId || !clientId) return;
     try {
       setLoading(true);
+
       const response = await axios.get(
-        `http://10.0.2.2:5000/api/tickets/employee/${userId}`,
-        { params: { status_id: 2 } },
+        `${BASE_URL}/api/tickets/employee/${userId}`,
+        {
+          params: { status_id: 2 },
+          headers: {
+            'x-client-id': clientId,
+          },
+        },
       );
+
       const tickets = response.data?.list || [];
 
       const scheduledTickets = tickets.filter(t => t.employee_arrival_date);
@@ -51,11 +104,11 @@ const EventsOverview = () => {
     } finally {
       setLoading(false);
     }
-  }, [userId, eventType]);
+  }, [userId, clientId, eventType]);
 
   useEffect(() => {
-    if (userId) fetchTickets();
-  }, [fetchTickets, userId, eventType]);
+    if (userId && clientId) fetchTickets();
+  }, [fetchTickets, userId, clientId, eventType]);
 
   const renderItem = ({ item }) => {
     const address = `${item.address}, ${item.state_name}`;

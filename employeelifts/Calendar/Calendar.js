@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import axios from 'axios';
+import { BASE_URL } from '@env';
 import { Calendar as BigCalendar } from 'react-native-big-calendar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -16,7 +17,6 @@ import dayjs from 'dayjs';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
 const EventsCalendar = () => {
   const [events, setEvents] = useState([]);
   const [mode, setMode] = useState('month');
@@ -29,10 +29,24 @@ const EventsCalendar = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
+
         const userId = await AsyncStorage.getItem('userId');
+        const clientId = await AsyncStorage.getItem('clientId');
+
+        if (!userId || !clientId) {
+          console.warn('Missing userId or clientId');
+          return;
+        }
+
         const response = await axios.get(
-          `http://10.0.2.2:5000/api/tickets/employee/${userId}`,
+          `${BASE_URL}/api/tickets/employee/${userId}`,
+          {
+            headers: {
+              'x-client-id': clientId,
+            },
+          },
         );
+
         const tickets = response.data?.list || [];
 
         const mapped = tickets
@@ -44,6 +58,7 @@ const EventsCalendar = () => {
             const end = new Date(
               dayjs(ticket.employee_arrival_date).endOf('day').toISOString(),
             );
+
             return {
               start,
               end,
@@ -63,6 +78,53 @@ const EventsCalendar = () => {
 
     fetchEvents();
   }, [mode]);
+
+  // const EventsCalendar = () => {
+  //   const [events, setEvents] = useState([]);
+  //   const [mode, setMode] = useState('month');
+  //   const [date, setDate] = useState(new Date());
+  //   const [loading, setLoading] = useState(false);
+  //   const [expandedDates, setExpandedDates] = useState({});
+  //   const navigation = useNavigation();
+
+  //   useEffect(() => {
+  //     const fetchEvents = async () => {
+  //       try {
+  //         setLoading(true);
+  //         const userId = await AsyncStorage.getItem('userId');
+  //         const response = await axios.get(
+  //           `${BASE_URL}/api/tickets/employee/${userId}`,
+  //         );
+  //         const tickets = response.data?.list || [];
+
+  //         const mapped = tickets
+  //           .filter(t => t.employee_arrival_date)
+  //           .map(ticket => {
+  //             const start = new Date(
+  //               dayjs(ticket.employee_arrival_date).startOf('day').toISOString(),
+  //             );
+  //             const end = new Date(
+  //               dayjs(ticket.employee_arrival_date).endOf('day').toISOString(),
+  //             );
+  //             return {
+  //               start,
+  //               end,
+  //               title: `Ticket #${ticket.ticket_id}`,
+  //               ticket,
+  //               ticket_id: ticket.ticket_id,
+  //             };
+  //           });
+
+  //         setEvents(mapped);
+  //       } catch (err) {
+  //         console.error('Failed to fetch events', err);
+  //       } finally {
+  //         setLoading(false);
+  //       }
+  //     };
+
+  //     fetchEvents();
+  //   }, [mode]);
 
   const handleEventPress = event => {
     navigation.navigate('ViewTickets', { ticketId: event.ticket_id });
@@ -331,71 +393,6 @@ const EventsCalendar = () => {
                 </View>
               );
             }}
-
-            // renderEvent={event => {
-            //   const dateKey = dayjs(event.start).format('YYYY-MM-DD');
-            //   const eventsOnDate = events.filter(
-            //     e => dayjs(e.start).format('YYYY-MM-DD') === dateKey,
-            //   );
-            //   const isExpanded = expandedDates[dateKey];
-            //   const displayEvents = isExpanded
-            //     ? eventsOnDate
-            //     : eventsOnDate.slice(0, 1);
-            //   const showMore = eventsOnDate.length > 1 && !isExpanded;
-
-            //   return (
-            //     <View style={{ paddingHorizontal: 4, overflow: 'hidden' }}>
-            //       {displayEvents.map((ev, idx) => (
-            //         <TouchableOpacity
-            //           key={idx}
-            //           onPress={() => handleEventPress(ev)}
-            //           style={{
-            //             backgroundColor: '#00bdaa',
-            //             borderRadius: 6,
-            //             paddingVertical: 2,
-            //             paddingHorizontal: 4,
-            //             marginVertical: 1,
-            //           }}
-            //         >
-            //           <Text
-            //             numberOfLines={1}
-            //             ellipsizeMode="tail"
-            //             style={{
-            //               fontWeight: 'bold',
-            //               color: '#fff',
-            //               fontSize: 12,
-            //               width: 120,
-            //               overflow: 'hidden',
-            //             }}
-            //           >
-            //             {ev.ticket.ticket_service_id}
-            //           </Text>
-            //         </TouchableOpacity>
-            //       ))}
-            //       {showMore && (
-            //         <TouchableOpacity
-            //           onPress={() =>
-            //             setExpandedDates(prev => ({
-            //               ...prev,
-            //               [dateKey]: true,
-            //             }))
-            //           }
-            //         >
-            //           <Text
-            //             style={{
-            //               color: 'red',
-            //               fontSize: 15,
-            //               fontWeight: 'bold',
-            //               marginTop: 2,
-            //             }}
-            //           >
-            //             +{eventsOnDate.length - 1} more
-            //           </Text>
-            //         </TouchableOpacity>
-            //       )}
-            //     </View>
-            //   );
-            // }}
           />
         )}
       </GestureHandlerRootView>

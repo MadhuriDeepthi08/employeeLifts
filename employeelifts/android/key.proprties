@@ -1,0 +1,5 @@
+storePassword=Deepthi@123
+keyPassword=Deepthi@123
+keyAlias=my-key-alias
+storeFile=/var/www/employeeLifts/employeelifts/android/app/my-key.keystore
+ 
