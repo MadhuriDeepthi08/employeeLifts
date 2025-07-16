@@ -163,7 +163,7 @@ const ViewTickets = () => {
               <Text style={styles.Text}>
                 {ticket.address}, {ticket.city_name}, {ticket.state_name}
               </Text>
-              <Text style={styles.Text}>{ticket.asset_name}</Text>
+              <Text style={styles.Text}>{ticket.customer_email}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() =>
@@ -191,7 +191,7 @@ const ViewTickets = () => {
               numberOfLines={1}
               ellipsizeMode="clip"
             >
-              {ticket.customer_email}
+              {ticket.asset_name}
             </Text>
 
             <Text
@@ -296,6 +296,7 @@ const styles = StyleSheet.create({
   badgeNew: {
     backgroundColor: '#FF6B6B',
     borderRadius: 8,
+
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
@@ -313,6 +314,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     backgroundColor: '#4CAF50',
     padding: 8,
+    textAlign: 'center',
     borderRadius: 8,
     marginRight: 6,
     minWidth: 0,
@@ -321,10 +323,12 @@ const styles = StyleSheet.create({
   emailText: {
     flex: 1,
     fontSize: 14,
-    color: '#fff',
+
     fontWeight: 'bold',
-    backgroundColor: '#009688',
+    backgroundColor: '#9CA3AF',
+    color: '#FFFFFF',
     padding: 8,
+    textAlign: 'center',
     borderRadius: 8,
     marginRight: 6,
     minWidth: 0,
@@ -335,7 +339,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     fontWeight: 'bold',
-    backgroundColor: '#673AB7',
+    backgroundColor: '#3EB489',
     padding: 8,
     borderRadius: 8,
     textAlign: 'center',
@@ -347,7 +351,7 @@ const styles = StyleSheet.create({
   },
   Text: {
     fontSize: 13,
-    color: '#444',
+    color: '#888',
     fontWeight: 'bold',
     marginBottom: 8,
     backgroundColor: '#f9fbe7',

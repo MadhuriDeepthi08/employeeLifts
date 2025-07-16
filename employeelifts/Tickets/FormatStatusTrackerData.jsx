@@ -84,19 +84,25 @@ const FormatStatusTrackerData = ({ trackingData }) => {
 
   return (
     <View style={styles.container}>
-      {parsed.map((item, index) => (
-        <View key={index} style={styles.entry}>
-          <View style={styles.bulletRow}>
-            <Text style={styles.bullet}>{'\u2022'}</Text>
-            <View style={styles.messageBlock}>
-              <Text style={styles.message}>{item.message}</Text>
-              <Text style={styles.timestamp}>
-                {new Date(item.timestamp).toLocaleString()}
-              </Text>
+      {parsed.map((item, index) => {
+        const timestamp = new Date(item.timestamp);
+        const isValidDate = !isNaN(timestamp.getTime());
+        return (
+          <View key={index} style={styles.entry}>
+            <View style={styles.bulletRow}>
+              <Text style={styles.bullet}>{'\u2022'}</Text>
+              <View style={styles.messageBlock}>
+                <Text style={styles.message}>{item.message}</Text>
+                {isValidDate && (
+                  <Text style={styles.timestamp}>
+                    {timestamp.toLocaleString()}
+                  </Text>
+                )}
+              </View>
             </View>
           </View>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 };
@@ -104,12 +110,10 @@ const FormatStatusTrackerData = ({ trackingData }) => {
 const styles = StyleSheet.create({
   container: {
     marginTop: 30,
-
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 15,
-
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
