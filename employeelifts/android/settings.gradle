@@ -1,42 +1,7 @@
-// pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
-// plugins { id("com.facebook.react.settings") }
-// extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
-// rootProject.name = 'employeelifts'
-// include ':app'
-// includeBuild('../node_modules/@react-native/gradle-plugin')
-// pluginManagement {
-//     includeBuild("../node_modules/@react-native/gradle-plugin")
-// }
+pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+plugins { id("com.facebook.react.settings") }
+extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
+rootProject.name = 'employeelifts'
+include ':app'
+includeBuild('../node_modules/@react-native/gradle-plugin')
 
-// plugins {
-//     id("com.facebook.react.settings")
-// }
-
-// rootProject.name = "employeelifts"
-
-// include(":app")
-
-// // Optional: Only needed if you're using TurboModules/Fabric
-// // This auto-generates required native modules when enabled
-// extensions.configure(com.facebook.react.ReactSettingsExtension) { ext ->
-//     ext.autolinkLibrariesFromCommand()
-// }
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-    }
-    includeBuild("../node_modules/@react-native/gradle-plugin")
-}
-
-plugins {
-    id("com.facebook.react.settings")
-}
-
-rootProject.name = "employeelifts"
-include(":app")
-
-extensions.configure(com.facebook.react.ReactSettingsExtension) {
-    it.autolinkLibrariesFromCommand()
-}

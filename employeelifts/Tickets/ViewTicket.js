@@ -24,46 +24,6 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FormatStatusTrackerData from './FormatStatusTrackerData';
 import AddConversation from './Conversation';
 
-// const ViewTickets = () => {
-//   const navigation = useNavigation();
-//   const route = useRoute();
-//   const ticketId = route.params?.ticketId;
-
-//   const [ticket, setTicket] = useState(null);
-//   const [userId, setUserId] = useState(null);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     const init = async () => {
-//       const userData = await AsyncStorage.getItem('userId');
-//       if (userData) {
-//         const parsed = JSON.parse(userData);
-//         setUserId(parsed);
-//       }
-//     };
-//     init();
-//   }, []);
-
-//   const fetchTicket = useCallback(async () => {
-//     if (!userId || !ticketId) return;
-//     try {
-//       const response = await axios.get(`${BASE_URL}/api/tickets/${ticketId}`);
-//       setTicket(response.data.list);
-//     } catch (error) {
-//       console.error('Error fetching ticket:', error);
-//       Alert.alert('Error', 'Unable to load ticket');
-//       navigation.goBack();
-//     } finally {
-//       setLoading(false);
-//     }
-//   }, [ticketId, userId, navigation]);
-
-//   useFocusEffect(
-//     useCallback(() => {
-//       fetchTicket();
-//     }, [fetchTicket]),
-//   );
-
 const ViewTickets = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -71,34 +31,23 @@ const ViewTickets = () => {
 
   const [ticket, setTicket] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [clientId, setClientId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => {
-      try {
-        const storedUserId = await AsyncStorage.getItem('userId');
-        const storedClientId = await AsyncStorage.getItem('clientId');
-        setUserId(storedUserId);
-        setClientId(storedClientId);
-      } catch (err) {
-        console.error('Error loading IDs:', err);
+      const userData = await AsyncStorage.getItem('userId');
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        setUserId(parsed);
       }
     };
     init();
   }, []);
 
   const fetchTicket = useCallback(async () => {
-    if (!userId || !ticketId || !clientId) return;
-
+    if (!userId || !ticketId) return;
     try {
-      const response = await axios.get(`${BASE_URL}/api/tickets/${ticketId}`, {
-        headers: {
-          'x-client-id': clientId,
-        },
-      });
-
-      console.log('Fetched ticket:', response.data);
+      const response = await axios.get(`${BASE_URL}/api/tickets/${ticketId}`);
       setTicket(response.data.list);
     } catch (error) {
       console.error('Error fetching ticket:', error);
@@ -107,13 +56,60 @@ const ViewTickets = () => {
     } finally {
       setLoading(false);
     }
-  }, [ticketId, userId, clientId, navigation]);
+  }, [ticketId, userId, navigation]);
 
   useFocusEffect(
     useCallback(() => {
       fetchTicket();
     }, [fetchTicket]),
   );
+
+  // const ViewTickets = () => {
+  //   const navigation = useNavigation();
+  //   const route = useRoute();
+  //   const ticketId = route.params?.ticketId;
+
+  //   const [ticket, setTicket] = useState(null);
+  //   const [loading, setLoading] = useState(true);
+  //   const [userId, setUserId] = useState(null);
+
+  //   const fetchTicketData = useCallback(async () => {
+  //     setLoading(true);
+  //     try {
+  //       const storedUserId = await AsyncStorage.getItem('userId');
+  //       const storedClientId = await AsyncStorage.getItem('clientId');
+
+  //       if (!storedUserId || !storedClientId || !ticketId) {
+  //         Alert.alert('Error', 'Missing user or ticket info');
+  //         navigation.goBack();
+  //         return;
+  //       }
+
+  //       setUserId(storedUserId);
+  //       const response = await axios.get(`${BASE_URL}/api/tickets/${ticketId}`, {
+  //         headers: { 'x-client-id': storedClientId },
+  //       });
+
+  //       if (response.data?.list) {
+  //         setTicket(response.data.list);
+  //       } else {
+  //         throw new Error('Ticket not found');
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching ticket:', error);
+  //       Alert.alert('Error', 'Unable to load ticket');
+  //       navigation.goBack();
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }, [ticketId, navigation]);
+
+  //   useFocusEffect(
+  //     useCallback(() => {
+  //       fetchTicketData();
+  //     }, [fetchTicketData]),
+  //   );
+
   const handleMediaOpen = fileName => {
     const url = `https://your-cdn-domain.com/${fileName}`;
     Linking.openURL(url);
@@ -191,7 +187,7 @@ const ViewTickets = () => {
               numberOfLines={1}
               ellipsizeMode="clip"
             >
-              {ticket.asset_name}
+              {ticket.priority_rank}
             </Text>
 
             <Text
@@ -294,7 +290,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   badgeNew: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#3EB489',
     borderRadius: 8,
 
     paddingHorizontal: 10,
@@ -313,37 +309,42 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     backgroundColor: '#4CAF50',
-    padding: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     textAlign: 'center',
     borderRadius: 8,
     marginRight: 6,
     minWidth: 0,
     flexShrink: 1,
   },
+
   emailText: {
     flex: 1,
     fontSize: 14,
-
     fontWeight: 'bold',
     backgroundColor: '#9CA3AF',
     color: '#FFFFFF',
-    padding: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     textAlign: 'center',
     borderRadius: 8,
     marginRight: 6,
     minWidth: 0,
     flexShrink: 1,
   },
+
   descriptionText: {
     flex: 1,
     fontSize: 14,
     color: '#fff',
     fontWeight: 'bold',
     backgroundColor: '#3EB489',
-    padding: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 8,
     textAlign: 'center',
   },
+
   divider: {
     height: 1,
     backgroundColor: '#bbb',
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
   },
   subText: {
     fontSize: 14,
-    color: '#333',
+    color: '#888',
     backgroundColor: '#e0f7fa',
     padding: 10,
     borderRadius: 10,

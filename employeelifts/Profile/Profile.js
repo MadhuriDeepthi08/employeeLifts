@@ -90,7 +90,6 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f8f8f8' }}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -102,7 +101,6 @@ const ProfileScreen = ({ navigation }) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Tabs */}
         <View style={styles.tabContainer}>
           <TouchableOpacity
             style={[
@@ -245,55 +243,60 @@ const ProfileScreen = ({ navigation }) => {
                 {errors.address && (
                   <Text style={styles.error}>{errors.address}</Text>
                 )}
-
-                <Picker
-                  selectedValue={values.state_id}
-                  onValueChange={value => setFieldValue('state_id', value)}
-                >
-                  {states.map(state => (
-                    <Picker.Item
-                      key={state.state_id}
-                      label={state.state_name}
-                      value={state.state_id}
-                    />
-                  ))}
-                </Picker>
-                {errors.state_id && (
-                  <Text style={styles.error}>{errors.state_id}</Text>
-                )}
-
-                <Picker
-                  selectedValue={values.city_id}
-                  onValueChange={value => setFieldValue('city_id', value)}
-                >
-                  {cities.map(city => (
-                    <Picker.Item
-                      key={city.city_id}
-                      label={city.city_name}
-                      value={city.city_id}
-                    />
-                  ))}
-                </Picker>
-                {errors.city_id && (
-                  <Text style={styles.error}>{errors.city_id}</Text>
-                )}
-
-                <Picker
-                  selectedValue={values.region_id}
-                  onValueChange={value => setFieldValue('region_id', value)}
-                >
-                  {regions.map(region => (
-                    <Picker.Item
-                      key={region.region_id}
-                      label={region.region_name}
-                      value={region.region_id}
-                    />
-                  ))}
-                </Picker>
-                {errors.region_id && (
-                  <Text style={styles.error}>{errors.region_id}</Text>
-                )}
-
+                <View style={styles.picker}>
+                  <Picker
+                    selectedValue={values.state_id}
+                    onValueChange={value => setFieldValue('state_id', value)}
+                    style={styles.pickerText}
+                  >
+                    {states.map(state => (
+                      <Picker.Item
+                        key={state.state_id}
+                        label={state.state_name}
+                        value={state.state_id}
+                      />
+                    ))}
+                  </Picker>
+                  {errors.state_id && (
+                    <Text style={styles.error}>{errors.state_id}</Text>
+                  )}
+                </View>
+                <View style={styles.picker}>
+                  <Picker
+                    selectedValue={values.city_id}
+                    onValueChange={value => setFieldValue('city_id', value)}
+                    style={styles.pickerText}
+                  >
+                    {cities.map(city => (
+                      <Picker.Item
+                        key={city.city_id}
+                        label={city.city_name}
+                        value={city.city_id}
+                      />
+                    ))}
+                  </Picker>
+                  {errors.city_id && (
+                    <Text style={styles.error}>{errors.city_id}</Text>
+                  )}
+                </View>
+                <View style={styles.picker}>
+                  <Picker
+                    selectedValue={values.region_id}
+                    onValueChange={value => setFieldValue('region_id', value)}
+                    style={styles.pickerText}
+                  >
+                    {regions.map(region => (
+                      <Picker.Item
+                        key={region.region_id}
+                        label={region.region_name}
+                        value={region.region_id}
+                      />
+                    ))}
+                  </Picker>
+                  {errors.region_id && (
+                    <Text style={styles.error}>{errors.region_id}</Text>
+                  )}
+                </View>
                 <View style={styles.buttonRow}>
                   <TouchableOpacity
                     style={styles.updateButton}
@@ -412,7 +415,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     backgroundColor: '#fff',
-    color: '#000',
+    color: '#222',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   button: {
     backgroundColor: '#3EB487',
@@ -429,6 +434,11 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: 12,
     marginBottom: 6,
+  },
+  pickerText: {
+    color: '#888',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
 });
 

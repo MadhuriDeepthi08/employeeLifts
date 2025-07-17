@@ -1,73 +1,3 @@
-// import React from 'react';
-// import { View, Text, StyleSheet } from 'react-native';
-
-// const FormatStatusTrackerData = ({ trackingData }) => {
-//   let parsed = [];
-//   try {
-//     parsed =
-//       typeof trackingData === 'string'
-//         ? JSON.parse(trackingData)
-//         : trackingData;
-//   } catch (e) {
-//     parsed = [];
-//   }
-
-//   return (
-//     <View style={styles.container}>
-//       {parsed.map((item, index) => (
-//         <View key={index} style={styles.entry}>
-//           <Text style={styles.message}>{item.message}</Text>
-
-//           <Text style={styles.timestamp}>
-//             {new Date(item.timestamp).toLocaleString()}
-//           </Text>
-//         </View>
-//       ))}
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     marginTop: 30,
-
-//     backgroundColor: '#fff',
-//     borderRadius: 12,
-//     padding: 16,
-//     marginBottom: 15,
-
-//     elevation: 3,
-//     shadowColor: '#000',
-//     shadowOffset: { width: 0, height: 1 },
-//     shadowOpacity: 0.1,
-//     shadowRadius: 3,
-//   },
-//   entry: {
-//     marginBottom: 12,
-
-//     paddingBottom: 6,
-//   },
-//   line: {
-//     flexDirection: 'row',
-//     flexWrap: 'wrap',
-//     marginBottom: 4,
-//   },
-
-//   message: {
-//     fontSize: 15,
-//     fontWeight: 'bold',
-//     color: 'black',
-//     flexShrink: 1,
-//   },
-//   timestamp: {
-//     fontSize: 14,
-//     fontWeight: 'bold',
-//     color: '#888',
-//     marginTop: 2,
-//   },
-// });
-
-// export default FormatStatusTrackerData;
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
@@ -85,17 +15,82 @@ const FormatStatusTrackerData = ({ trackingData }) => {
   return (
     <View style={styles.container}>
       {parsed.map((item, index) => {
-        const timestamp = new Date(item.timestamp);
+        const rawTimestamp =
+          item.timestamp ||
+          item.Date ||
+          item.updatedDate ||
+          item.created_at ||
+          item.updated_at;
+
+        const timestamp = new Date(rawTimestamp);
         const isValidDate = !isNaN(timestamp.getTime());
+
         return (
           <View key={index} style={styles.entry}>
             <View style={styles.bulletRow}>
               <Text style={styles.bullet}>{'\u2022'}</Text>
               <View style={styles.messageBlock}>
                 <Text style={styles.message}>{item.message}</Text>
-                {isValidDate && (
+                {item.changedBy && (
+                  <Text style={styles.subText}>
+                    {item.changedBy} {item.employeePhone}
+                  </Text>
+                )}
+
+                {item.statusName === 'Engineer Assigned' &&
+                  console.log(
+                    'Engineer Assigned Data:',
+                    item,
+                  )(item.employeeName || item.employeePhone) && (
+                    <Text style={styles.subText}>
+                      {item.employeeName} {item.employeePhone}
+                    </Text>
+                  )}
+
+                {item.arrivalDate && (
+                  <Text style={styles.subText}>
+                    Arrival:{' '}
+                    {new Date(item.arrivalDate).toLocaleString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true,
+                    })}
+                  </Text>
+                )}
+
+                {/* {rawTimestamp && (
                   <Text style={styles.timestamp}>
-                    {timestamp.toLocaleString()}
+                    {isValidDate
+                      ? `${timestamp.toLocaleString('en-US', {
+                          month: 'short',
+                        })} ${timestamp.getDate()} ${timestamp.getFullYear()} ${timestamp.toLocaleTimeString(
+                          'en-US',
+                          {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          },
+                        )}`
+                      : String(rawTimestamp)}
+                  </Text>
+                )} */}
+                {item.message !== 'Ticket created' && rawTimestamp && (
+                  <Text style={styles.timestamp}>
+                    {isValidDate
+                      ? `${timestamp.toLocaleString('en-US', {
+                          month: 'short',
+                        })} ${timestamp.getDate()} ${timestamp.getFullYear()} ${timestamp.toLocaleTimeString(
+                          'en-US',
+                          {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          },
+                        )}`
+                      : String(rawTimestamp)}
                   </Text>
                 )}
               </View>
@@ -141,11 +136,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
   },
+  subText: {
+    fontSize: 14,
+    color: '#888',
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
   timestamp: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#888',
-    marginTop: 8,
+    marginTop: 4,
   },
 });
 

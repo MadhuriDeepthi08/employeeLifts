@@ -288,7 +288,7 @@ const AddConversation = ({ data, user, customerComments, fetchData }) => {
         const userId = await AsyncStorage.getItem('userId');
 
         setUserInfo({
-          userId: userId,
+          userId,
           name: name || '',
           Role: role ? [role] : [],
         });
@@ -314,11 +314,23 @@ const AddConversation = ({ data, user, customerComments, fetchData }) => {
   }, [customerComments]);
 
   useEffect(() => {
-    const socketUrl = 'http://10.0.2.2:5000'; // Change if needed for device
-    socket.current = io(socketUrl, { transports: ['websocket'] });
+    const socketUrl = BASE_URL.replace(/^http/, 'ws'); // safer fallback
+    socket.current = io(socketUrl, {
+      transports: ['websocket'],
+      reconnectionAttempts: 5,
+      timeout: 5000,
+    });
 
     socket.current.on('connect', () => {
       console.log('Socket connected');
+    });
+
+    socket.current.on('disconnect', reason => {
+      console.warn('Socket disconnected:', reason);
+    });
+
+    socket.current.on('connect_error', err => {
+      console.warn('Socket connection error:', err.message);
     });
 
     socket.current.on('message', msg => {
@@ -328,7 +340,7 @@ const AddConversation = ({ data, user, customerComments, fetchData }) => {
     });
 
     return () => {
-      socket.current.disconnect();
+      socket.current?.disconnect();
     };
   }, []);
 
@@ -354,19 +366,19 @@ const AddConversation = ({ data, user, customerComments, fetchData }) => {
     try {
       const ticketData = {
         customer_comments: JSON.stringify(
-          updatedConversation.map(msg => ({
-            message: msg,
-          })),
+          updatedConversation.map(msg => ({ message: msg })),
         ),
       };
-
-      console.log('Saving customer_comments:', ticketData.customer_comments);
 
       await axios.put(`${BASE_URL}/api/tickets/${data?.ticket_id}`, {
         ticketData,
       });
 
-      socket.current.emit('message', newMessage);
+      // Try sending via socket if connected
+      if (socket.current?.connected) {
+        socket.current.emit('message', newMessage);
+      }
+
       resetForm();
       fetchData();
     } catch (err) {
@@ -401,7 +413,6 @@ const AddConversation = ({ data, user, customerComments, fetchData }) => {
         )}
       </View>
 
-      {/* Always show send box */}
       <Formik
         initialValues={{ customer_comments: '' }}
         onSubmit={(values, { resetForm }) =>

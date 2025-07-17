@@ -51,7 +51,6 @@ const Dashboard = ({ navigation }) => {
   const [statusFilter, setStatusFilter] = useState(null);
   const [clientId, setClientId] = useState(null);
   const [ticketStatuses, setTicketStatuses] = useState([]);
-
   useEffect(() => {
     const loadDataAndFetch = async () => {
       try {
@@ -68,18 +67,18 @@ const Dashboard = ({ navigation }) => {
         });
         setTicketStatuses(statusRes?.data || []);
 
-        const endpoint =
-          statusFilter === '1' || statusFilter === null
-            ? `${BASE_URL}/api/tickets`
-            : `${BASE_URL}/api/tickets/employee/${id}`;
-
-        const ticketRes = await axios.get(endpoint, {
-          params: { status_id: statusFilter },
-          headers: {
-            'x-client-id': cid,
-          },
-        });
-        setTickets(ticketRes?.data?.list || []);
+        if (id && cid) {
+          const ticketRes = await axios.get(
+            `${BASE_URL}/api/tickets/employee/${id}`,
+            {
+              params: statusFilter ? { status_id: statusFilter } : {},
+              headers: {
+                'x-client-id': cid,
+              },
+            },
+          );
+          setTickets(ticketRes?.data?.list || []);
+        }
       } catch (err) {
         console.error('Failed to load data:', err);
         setTickets([]);
@@ -92,23 +91,79 @@ const Dashboard = ({ navigation }) => {
   const fetchTickets = useCallback(async () => {
     if (!userId || !clientId) return;
     try {
-      const endpoint =
-        statusFilter === '1' || statusFilter === null
-          ? `${BASE_URL}/api/tickets`
-          : `${BASE_URL}/api/tickets/employee/${userId}`;
-
-      const response = await axios.get(endpoint, {
-        params: { status_id: statusFilter },
-        headers: {
-          'x-client-id': clientId,
+      const response = await axios.get(
+        `${BASE_URL}/api/tickets/employee/${userId}`,
+        {
+          params: statusFilter ? { status_id: statusFilter } : {},
+          headers: {
+            'x-client-id': clientId,
+          },
         },
-      });
+      );
       setTickets(response?.data?.list || []);
     } catch (error) {
       console.error(error);
       setTickets([]);
     }
   }, [userId, clientId, statusFilter]);
+
+  // useEffect(() => {
+  //   const loadDataAndFetch = async () => {
+  //     try {
+  //       const id = await AsyncStorage.getItem('userId');
+  //       const cid = await AsyncStorage.getItem('clientId');
+
+  //       setUserId(id);
+  //       setClientId(cid);
+
+  //       const statusRes = await axios.get(`${BASE_URL}/api/ticket-statuses`, {
+  //         headers: {
+  //           'x-client-id': cid,
+  //         },
+  //       });
+  //       setTicketStatuses(statusRes?.data || []);
+
+  //       const endpoint =
+  //         statusFilter === '1' || statusFilter === null
+  //           ? `${BASE_URL}/api/tickets`
+  //           : `${BASE_URL}/api/tickets/employee/${id}`;
+
+  //       const ticketRes = await axios.get(endpoint, {
+  //         params: { status_id: statusFilter },
+  //         headers: {
+  //           'x-client-id': cid,
+  //         },
+  //       });
+  //       setTickets(ticketRes?.data?.list || []);
+  //     } catch (err) {
+  //       console.error('Failed to load data:', err);
+  //       setTickets([]);
+  //     }
+  //   };
+
+  //   loadDataAndFetch();
+  // }, [statusFilter]);
+
+  // const fetchTickets = useCallback(async () => {
+  //   if (!userId || !clientId) return;
+  //   try {
+  //     const endpoint =
+  //       statusFilter === '1' || statusFilter === null
+  //         ? `${BASE_URL}/api/tickets`
+  //         : `${BASE_URL}/api/tickets/employee/${userId}`;
+
+  //     const response = await axios.get(endpoint, {
+  //       params: { status_id: statusFilter },
+  //       headers: {
+  //         'x-client-id': clientId,
+  //       },
+  //     });
+  //     setTickets(response?.data?.list || []);
+  //   } catch (error) {
+  //     console.error(error);
+  //     setTickets([]);
+  //   }
+  // }, [userId, clientId, statusFilter]);
 
   useEffect(() => {
     if (userId && clientId) {
@@ -135,6 +190,7 @@ const Dashboard = ({ navigation }) => {
       status_tracker: trackerData,
       employee_arrival_date: null,
     };
+
     try {
       await axios.put(`${BASE_URL}/api/tickets/${item.ticket_id}`, {
         ticketData,
@@ -326,7 +382,7 @@ const Dashboard = ({ navigation }) => {
         };
       default:
         return {
-          backgroundColor: '#9CA3AF',
+          backgroundColor: '#3EB489',
           color: '#FFFFFF',
         };
     }
@@ -587,7 +643,7 @@ const Dashboard = ({ navigation }) => {
                   style={styles.input}
                 />
               </TouchableOpacity>
-              {/* 
+              {/*
               <TextInput
                 placeholder="Reason for Delay"
                 value={reasonForDelay}

@@ -1,3 +1,4 @@
+import DateFormat from './DateFormat';
 const StatusTracker = (
   previousData,
   message,
@@ -6,7 +7,7 @@ const StatusTracker = (
   createdBy,
   employeeName,
   employeePhone,
-  arrivalDate = null,
+  arrivalDate,
 ) => {
   const newEntry = {
     message,
