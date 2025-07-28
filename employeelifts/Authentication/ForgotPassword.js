@@ -24,17 +24,16 @@ const ForgotPassword = ({ navigation }) => {
         'http://10.0.2.2:5000/api/auth/forgot-password',
         { email },
       );
-
+      console.log('responseeeeeeesssssmmmm', response);
       if (response.status === 200) {
         Alert.alert(
           'Success',
           'A password reset link has been sent to your email.',
         );
-        // Optionally navigate elsewhere
+
         // navigation.navigate('Login');
       }
     } catch (error) {
-      console.error('Forgot Password Error:', error);
       const message =
         error?.response?.data?.error || 'Failed to send reset link';
       Alert.alert('Error', message);
@@ -50,7 +49,7 @@ const ForgotPassword = ({ navigation }) => {
         <TextInput
           style={styles.input}
           placeholder="Enter your email"
-          placeholderTextColor="black"
+          placeholderTextColor="#666"
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -69,65 +68,54 @@ const ForgotPassword = ({ navigation }) => {
   );
 };
 
-export default ForgotPassword;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9F9F9',
-    paddingHorizontal: 20,
-    marginTop: 100,
+    padding: 24,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 16,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: 'black',
-    marginBottom: 30,
+    color: '#333',
+    marginBottom: 24,
     textAlign: 'center',
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    marginBottom: 20,
-    elevation: 2,
+    borderBottomWidth: 1,
+    marginBottom: 16,
+    paddingHorizontal: 8,
   },
   icon: {
-    marginRight: 10,
-    color: '#555',
+    marginRight: 8,
   },
   input: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: 'black',
+    height: 48,
+    fontSize: 16,
+    color: '#000',
   },
   infoText: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#888',
+    color: '#666',
+    marginBottom: 24,
     textAlign: 'center',
-    marginBottom: 30,
-    paddingHorizontal: 10,
   },
   button: {
-    backgroundColor: '#3EB489',
-    paddingVertical: 10,
-    borderRadius: 25,
-    marginTop: 10,
-    alignItems: 'center',
-    elevation: 3,
-    width: '70%',
-    alignSelf: 'center',
+    backgroundColor: '#007bff',
+    paddingVertical: 14,
+    borderRadius: 8,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
     fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
+
+export default ForgotPassword;

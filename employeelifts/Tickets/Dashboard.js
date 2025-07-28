@@ -12,7 +12,6 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
-import { BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StatusTracker from './StatusTracker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -46,130 +45,54 @@ const Dashboard = ({ navigation }) => {
   const [serviceReason, setServiceReason] = useState('');
   const [customServiceReason, setCustomServiceReason] = useState('');
   const [userId, setUserId] = useState(null);
+
   const [editStatus, setEditStatus] = useState('');
   const [editReason, setEditReason] = useState('');
   const [statusFilter, setStatusFilter] = useState(null);
-  const [clientId, setClientId] = useState(null);
   const [ticketStatuses, setTicketStatuses] = useState([]);
+
   useEffect(() => {
-    const loadDataAndFetch = async () => {
+    const loadUserId = async () => {
+      const id = await AsyncStorage.getItem('userId');
+      setUserId(id);
+    };
+
+    const fetchStatusOptions = async () => {
       try {
-        const id = await AsyncStorage.getItem('userId');
-        const cid = await AsyncStorage.getItem('clientId');
-
-        setUserId(id);
-        setClientId(cid);
-
-        const statusRes = await axios.get(`${BASE_URL}/api/ticket-statuses`, {
-          headers: {
-            'x-client-id': cid,
-          },
-        });
-        setTicketStatuses(statusRes?.data || []);
-
-        if (id && cid) {
-          const ticketRes = await axios.get(
-            `${BASE_URL}/api/tickets/employee/${id}`,
-            {
-              params: statusFilter ? { status_id: statusFilter } : {},
-              headers: {
-                'x-client-id': cid,
-              },
-            },
-          );
-          setTickets(ticketRes?.data?.list || []);
-        }
+        const res = await axios.get('http://10.0.2.2:5000/api/ticket-statuses');
+        setTicketStatuses(res?.data || []);
       } catch (err) {
-        console.error('Failed to load data:', err);
-        setTickets([]);
+        console.error('Failed to fetch statuses:', err);
       }
     };
 
-    loadDataAndFetch();
-  }, [statusFilter]);
+    loadUserId();
+    fetchStatusOptions();
+  }, []);
 
   const fetchTickets = useCallback(async () => {
-    if (!userId || !clientId) return;
+    if (!userId) return;
     try {
-      const response = await axios.get(
-        `${BASE_URL}/api/tickets/employee/${userId}`,
-        {
-          params: statusFilter ? { status_id: statusFilter } : {},
-          headers: {
-            'x-client-id': clientId,
-          },
-        },
-      );
+      const endpoint =
+        statusFilter === '1' || statusFilter === null
+          ? `http://10.0.2.2:5000/api/tickets`
+          : `http://10.0.2.2:5000/api/tickets/employee/${userId}`;
+
+      const response = await axios.get(endpoint, {
+        params: { status_id: statusFilter },
+      });
       setTickets(response?.data?.list || []);
     } catch (error) {
       console.error(error);
       setTickets([]);
     }
-  }, [userId, clientId, statusFilter]);
-
-  // useEffect(() => {
-  //   const loadDataAndFetch = async () => {
-  //     try {
-  //       const id = await AsyncStorage.getItem('userId');
-  //       const cid = await AsyncStorage.getItem('clientId');
-
-  //       setUserId(id);
-  //       setClientId(cid);
-
-  //       const statusRes = await axios.get(`${BASE_URL}/api/ticket-statuses`, {
-  //         headers: {
-  //           'x-client-id': cid,
-  //         },
-  //       });
-  //       setTicketStatuses(statusRes?.data || []);
-
-  //       const endpoint =
-  //         statusFilter === '1' || statusFilter === null
-  //           ? `${BASE_URL}/api/tickets`
-  //           : `${BASE_URL}/api/tickets/employee/${id}`;
-
-  //       const ticketRes = await axios.get(endpoint, {
-  //         params: { status_id: statusFilter },
-  //         headers: {
-  //           'x-client-id': cid,
-  //         },
-  //       });
-  //       setTickets(ticketRes?.data?.list || []);
-  //     } catch (err) {
-  //       console.error('Failed to load data:', err);
-  //       setTickets([]);
-  //     }
-  //   };
-
-  //   loadDataAndFetch();
-  // }, [statusFilter]);
-
-  // const fetchTickets = useCallback(async () => {
-  //   if (!userId || !clientId) return;
-  //   try {
-  //     const endpoint =
-  //       statusFilter === '1' || statusFilter === null
-  //         ? `${BASE_URL}/api/tickets`
-  //         : `${BASE_URL}/api/tickets/employee/${userId}`;
-
-  //     const response = await axios.get(endpoint, {
-  //       params: { status_id: statusFilter },
-  //       headers: {
-  //         'x-client-id': clientId,
-  //       },
-  //     });
-  //     setTickets(response?.data?.list || []);
-  //   } catch (error) {
-  //     console.error(error);
-  //     setTickets([]);
-  //   }
-  // }, [userId, clientId, statusFilter]);
+  }, [userId, statusFilter]);
 
   useEffect(() => {
-    if (userId && clientId) {
+    if (userId) {
       fetchTickets();
     }
-  }, [userId, clientId, statusFilter, fetchTickets]);
+  }, [userId, statusFilter, fetchTickets]);
 
   const handleAssignToMe = async item => {
     const userStr = await AsyncStorage.getItem('userId');
@@ -190,9 +113,8 @@ const Dashboard = ({ navigation }) => {
       status_tracker: trackerData,
       employee_arrival_date: null,
     };
-
     try {
-      await axios.put(`${BASE_URL}/api/tickets/${item.ticket_id}`, {
+      await axios.put(`http://10.0.2.2:5000/api/tickets/${item.ticket_id}`, {
         ticketData,
       });
       fetchTickets();
@@ -219,7 +141,7 @@ const Dashboard = ({ navigation }) => {
       status_tracker: trackerData,
     };
     try {
-      await axios.put(`${BASE_URL}/api/tickets/${item.ticket_id}`, {
+      await axios.put(`http://10.0.2.2:5000/api/tickets/${item.ticket_id}`, {
         ticketData,
       });
       fetchTickets();
@@ -238,11 +160,11 @@ const Dashboard = ({ navigation }) => {
     const msg = reasonForDelay
       ? `Engineer will arrive on ${arrivalDate.toDateString()} at ${
           arrivalTime.toTimeString().split(' ')[0]
-        } due to ${reasonForDelay}`
+        } 
+          // due to ${reasonForDelay}`
       : `Engineer will arrive on ${arrivalDate.toDateString()} at ${
           arrivalTime.toTimeString().split(' ')[0]
         }`;
-
     const trackerData = StatusTracker(
       selectedTicket.status_tracker,
       msg,
@@ -258,9 +180,10 @@ const Dashboard = ({ navigation }) => {
       status_tracker: trackerData,
     };
     try {
-      await axios.put(`${BASE_URL}/api/tickets/${selectedTicket.ticket_id}`, {
-        ticketData,
-      });
+      await axios.put(
+        `http://10.0.2.2:5000/api/tickets/${selectedTicket.ticket_id}`,
+        { ticketData },
+      );
       fetchTickets();
       setModalVisible(false);
       Alert.alert('Success', 'Arrival date updated');
@@ -276,7 +199,6 @@ const Dashboard = ({ navigation }) => {
       serviceReason === 'Other'
         ? customServiceReason
         : serviceReason || 'Service Update from Employee';
-
     const trackerData = StatusTracker(
       selectedTicket.status_tracker,
       reason,
@@ -292,9 +214,10 @@ const Dashboard = ({ navigation }) => {
       status_id: 3,
     };
     try {
-      await axios.put(`${BASE_URL}/api/tickets/${selectedTicket.ticket_id}`, {
-        ticketData,
-      });
+      await axios.put(
+        `http://10.0.2.2:5000/api/tickets/${selectedTicket.ticket_id}`,
+        { ticketData },
+      );
       fetchTickets();
       setServiceVisible(false);
       setServiceReason('');
@@ -339,9 +262,10 @@ const Dashboard = ({ navigation }) => {
     }
 
     try {
-      await axios.put(`${BASE_URL}/api/tickets/${selectedTicket.ticket_id}`, {
-        ticketData,
-      });
+      await axios.put(
+        `http://10.0.2.2:5000/api/tickets/${selectedTicket.ticket_id}`,
+        { ticketData },
+      );
       fetchTickets();
       setEditVisible(false);
       setEditStatus('');
@@ -351,7 +275,6 @@ const Dashboard = ({ navigation }) => {
       Alert.alert('Error', 'Failed to update status');
     }
   };
-
   const getStatusChipStyle = status => {
     switch (status?.toLowerCase()) {
       case 'open':
@@ -382,7 +305,7 @@ const Dashboard = ({ navigation }) => {
         };
       default:
         return {
-          backgroundColor: '#3EB489',
+          backgroundColor: '#9CA3AF',
           color: '#FFFFFF',
         };
     }
@@ -410,7 +333,7 @@ const Dashboard = ({ navigation }) => {
             </View>
             <View style={styles.headerInfo}>
               <Text style={styles.ticketTitle}>{item.customer_name}</Text>
-              <Text style={styles.ticketDate}>{item.ticket_id}</Text>
+              <Text style={styles.ticketDate}>{item.ticket_service_id}</Text>
               <Text style={styles.ticketDate}>{item.category_name}</Text>
               <Text style={styles.ticketDates}>
                 {item.created_at?.split('T')[0]}
@@ -449,41 +372,6 @@ const Dashboard = ({ navigation }) => {
             )}
           </View>
 
-          {/* {item.status_id === 2 &&
-            (item.employee_arrival_date ? (
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={styles.arrivalButton}
-                  onPress={() => {
-                    setSelectedTicket(item);
-                    setModalVisible(true);
-                  }}
-                >
-                  <Text style={styles.buttonText}>Arrival Date</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.startButton}
-                  onPress={() => handleStartWork(item)}
-                >
-                  <Text style={styles.buttonText}>Start</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.buttonRow}>
-                <View style={{ alignItems: 'flex-end', width: '100%' }}>
-                  <TouchableOpacity
-                    style={styles.arrivalDateAlone}
-                    onPress={() => {
-                      setSelectedTicket(item);
-                      setModalVisible(true);
-                    }}
-                  >
-                    <Text style={styles.buttonText}>Arrival Date</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))} */}
           {item.status_id === 2 && (
             <View style={styles.buttonRow}>
               <TouchableOpacity
@@ -643,13 +531,7 @@ const Dashboard = ({ navigation }) => {
                   style={styles.input}
                 />
               </TouchableOpacity>
-              {/*
-              <TextInput
-                placeholder="Reason for Delay"
-                value={reasonForDelay}
-                onChangeText={setReasonForDelay}
-                style={styles.input}
-              /> */}
+
               {selectedTicket?.employee_arrival_date && (
                 <TextInput
                   placeholder="Reason for Delay"
@@ -1134,22 +1016,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
-
-  // serviceButton: {
-  //   flex: 1,
-  //   backgroundColor: '#ff9800',
-  //   paddingVertical: 8,
-  //   borderRadius: 8,
-  //   alignItems: 'center',
-  // },
-
-  // editButton: {
-  //   flex: 1,
-  //   backgroundColor: '#3EB489',
-  //   paddingVertical: 8,
-  //   borderRadius: 8,
-  //   alignItems: 'center',
-  // },
 
   buttonText: {
     color: '#fff',

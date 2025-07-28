@@ -10,7 +10,6 @@ import {
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-
 import StatusTracker from './StatusTracker';
 const validationSchema = Yup.object({
   status_id: Yup.string().required('Status is required'),
@@ -66,7 +65,7 @@ const EditTicket = ({ onClose, employeeTicketData, fetchData, userId }) => {
 
         try {
           const response = await axios.put(
-            `http://10.0.2.2:5000/api/tickets/${employeeTicketData.ticket_id}`,
+            'http://10.0.2.2:5000api/tickets/${employeeTicketData.ticket_id}',
             { ticketData },
           );
           fetchData();

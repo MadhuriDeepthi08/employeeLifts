@@ -12,15 +12,18 @@ import { Formik } from 'formik';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as Yup from 'yup';
-import { BASE_URL } from '@env';
+
 const Login = ({ navigation }) => {
   const handleLogin = async values => {
     try {
-      const res = await axios.post(`${BASE_URL}/api/auth/admin/login`, {
-        email: values.email,
-        password: values.password,
-        rememberMe: false,
-      });
+      const res = await axios.post(
+        'http://10.0.2.2:5000/api/auth/admin/login',
+        {
+          email: values.email,
+          password: values.password,
+          rememberMe: false,
+        },
+      );
       console.log('resposeeeeee', res);
       const userData = res.data.empData;
 
@@ -60,7 +63,7 @@ const Login = ({ navigation }) => {
 
         <Formik
           initialValues={{
-            email: 'Employees@gmail.com',
+            email: 'employee@exapmle.com',
             password: 'Password123!',
           }}
           validationSchema={Validation}

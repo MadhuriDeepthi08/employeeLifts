@@ -1,1049 +1,318 @@
-// import React, { useEffect, useState, useCallback } from 'react';
-// import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   ActivityIndicator,
-//   TouchableOpacity,
-//   ScrollView,
-// } from 'react-native';
-// import axios from 'axios';
-// import { BASE_URL } from '@env';
-// import { Calendar as BigCalendar } from 'react-native-big-calendar';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { useNavigation } from '@react-navigation/native';
-// import { GestureHandlerRootView } from 'react-native-gesture-handler';
-// import dayjs from 'dayjs';
-// import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-// import Ionicons from 'react-native-vector-icons/Ionicons';
-// import FontAwesome from 'react-native-vector-icons/FontAwesome';
-// const EventsCalendar = () => {
-//   const [events, setEvents] = useState([]);
-//   const [mode, setMode] = useState('month');
-//   const [date, setDate] = useState(new Date());
-//   const [loading, setLoading] = useState(false);
-//   const [expandedDates, setExpandedDates] = useState({});
-//   const navigation = useNavigation();
-
-//   useEffect(() => {
-//     const fetchEvents = async () => {
-//       try {
-//         setLoading(true);
-
-//         const userId = await AsyncStorage.getItem('userId');
-//         const clientId = await AsyncStorage.getItem('clientId');
-
-//         if (!userId || !clientId) {
-//           console.warn('Missing userId or clientId');
-//           return;
-//         }
-
-//         const response = await axios.get(
-//           `${BASE_URL}/api/tickets/employee/${userId}`,
-//           {
-//             headers: {
-//               'x-client-id': clientId,
-//             },
-//           },
-//         );
-
-//         const tickets = response.data?.list || [];
-
-//         const mapped = tickets
-//           .filter(t => t.employee_arrival_date)
-//           .map(ticket => {
-//             const start = new Date(
-//               dayjs(ticket.employee_arrival_date).startOf('day').toISOString(),
-//             );
-//             const end = new Date(
-//               dayjs(ticket.employee_arrival_date).endOf('day').toISOString(),
-//             );
-
-//             return {
-//               start,
-//               end,
-//               title: `Ticket #${ticket.ticket_id}`,
-//               ticket,
-//               ticket_id: ticket.ticket_id,
-//             };
-//           });
-
-//         setEvents(mapped);
-//       } catch (err) {
-//         console.error('Failed to fetch events', err);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchEvents();
-//   }, [mode]);
-
-//   // const EventsCalendar = () => {
-//   //   const [events, setEvents] = useState([]);
-//   //   const [mode, setMode] = useState('month');
-//   //   const [date, setDate] = useState(new Date());
-//   //   const [loading, setLoading] = useState(false);
-//   //   const [expandedDates, setExpandedDates] = useState({});
-//   //   const navigation = useNavigation();
-
-//   //   useEffect(() => {
-//   //     const fetchEvents = async () => {
-//   //       try {
-//   //         setLoading(true);
-//   //         const userId = await AsyncStorage.getItem('userId');
-//   //         const response = await axios.get(
-//   //           `${BASE_URL}/api/tickets/employee/${userId}`,
-//   //         );
-//   //         const tickets = response.data?.list || [];
-
-//   //         const mapped = tickets
-//   //           .filter(t => t.employee_arrival_date)
-//   //           .map(ticket => {
-//   //             const start = new Date(
-//   //               dayjs(ticket.employee_arrival_date).startOf('day').toISOString(),
-//   //             );
-//   //             const end = new Date(
-//   //               dayjs(ticket.employee_arrival_date).endOf('day').toISOString(),
-//   //             );
-//   //             return {
-//   //               start,
-//   //               end,
-//   //               title: `Ticket #${ticket.ticket_id}`,
-//   //               ticket,
-//   //               ticket_id: ticket.ticket_id,
-//   //             };
-//   //           });
-
-//   //         setEvents(mapped);
-//   //       } catch (err) {
-//   //         console.error('Failed to fetch events', err);
-//   //       } finally {
-//   //         setLoading(false);
-//   //       }
-//   //     };
-
-//   //     fetchEvents();
-//   //   }, [mode]);
-
-//   const handleEventPress = event => {
-//     navigation.navigate('ViewTickets', { ticketId: event.ticket_id });
-//   };
-
-//   const goToToday = () => setDate(new Date());
-
-//   const goToPrevious = () => {
-//     const newDate =
-//       mode === 'month'
-//         ? dayjs(date).subtract(1, 'month')
-//         : mode === 'week'
-//         ? dayjs(date).subtract(1, 'week')
-//         : dayjs(date).subtract(1, 'day');
-//     setDate(newDate.toDate());
-//   };
-
-//   const goToNext = () => {
-//     const newDate =
-//       mode === 'month'
-//         ? dayjs(date).add(1, 'month')
-//         : mode === 'week'
-//         ? dayjs(date).add(1, 'week')
-//         : dayjs(date).add(1, 'day');
-//     setDate(newDate.toDate());
-//   };
-
-//   const formatDateHeader = () => {
-//     if (mode === 'month') return dayjs(date).format('MMMM YYYY');
-//     if (mode === 'week') {
-//       const start = dayjs(date).startOf('week');
-//       const end = dayjs(date).endOf('week');
-//       return `${start.format('MMM D')} - ${end.format('MMM D, YYYY')}`;
-//     }
-//     return dayjs(date).format('dddd, MMMM D, YYYY');
-//   };
-
-//   const groupedEvents = events.reduce((acc, evt) => {
-//     const dateKey = dayjs(evt.start).format('YYYY-MM-DD');
-//     if (!acc[dateKey]) acc[dateKey] = [];
-//     acc[dateKey].push(evt);
-//     return acc;
-//   }, {});
-
-//   return (
-//     <>
-//       <View style={styles.topHeader}>
-//         <Text style={styles.headerTitle}> Calendar</Text>
-//       </View>
-
-//       <GestureHandlerRootView style={styles.wrapper}>
-//         <View style={styles.header}>
-//           <View style={styles.navRow}>
-//             <TouchableOpacity onPress={goToPrevious} style={styles.navButton}>
-//               <Text style={styles.navText}>◀</Text>
-//             </TouchableOpacity>
-//             <TouchableOpacity onPress={goToToday} style={styles.todayButton}>
-//               <Text style={styles.todayText}>Today</Text>
-//             </TouchableOpacity>
-//             <TouchableOpacity onPress={goToNext} style={styles.navButton}>
-//               <Text style={styles.navText}>▶</Text>
-//             </TouchableOpacity>
-//           </View>
-
-//           <View style={styles.titleRow}>
-//             <Text style={styles.dateText}>{formatDateHeader()}</Text>
-//           </View>
-
-//           <View style={styles.modeRow}>
-//             {['month', 'week', 'day', 'agenda'].map(view => (
-//               <TouchableOpacity
-//                 key={view}
-//                 style={[
-//                   styles.viewButton,
-//                   mode === view && styles.viewButtonActive,
-//                 ]}
-//                 onPress={() => setMode(view)}
-//               >
-//                 <Text
-//                   style={[
-//                     styles.viewText,
-//                     mode === view && styles.viewTextActive,
-//                   ]}
-//                 >
-//                   {view.charAt(0).toUpperCase() + view.slice(1)}
-//                 </Text>
-//               </TouchableOpacity>
-//             ))}
-//           </View>
-//         </View>
-
-//         {loading ? (
-//           <View style={styles.loader}>
-//             <ActivityIndicator size="large" color="#00bdaa" />
-//           </View>
-//         ) : mode === 'agenda' ? (
-//           <ScrollView>
-//             {Object.keys(groupedEvents)
-//               .sort()
-//               .map(date => (
-//                 <View key={date} style={styles.agendaSection}>
-//                   <Text style={styles.agendaDate}>
-//                     {dayjs(date).format('dddd, MMMM D, YYYY')}
-//                   </Text>
-//                   {groupedEvents[date].map((evt, index) => (
-//                     <TouchableOpacity
-//                       key={index}
-//                       style={styles.agendaCard}
-//                       onPress={() => handleEventPress(evt)}
-//                     >
-//                       <Text style={styles.agendaTime}>
-//                         {dayjs(evt.start).format('h:mm A')}
-//                       </Text>
-//                       <Text style={styles.agendaTitle}>
-//                         Ticket #{evt.ticket.ticket_id}
-//                       </Text>
-//                       <Text style={styles.agendaLocation}>
-//                         {evt.ticket.address}, {evt.ticket.city_name}
-//                       </Text>
-//                     </TouchableOpacity>
-//                   ))}
-//                 </View>
-//               ))}
-//           </ScrollView>
-//         ) : (
-//           <BigCalendar
-//             events={events}
-//             height={680}
-//             mode={mode}
-//             date={date}
-//             onPressEvent={handleEventPress}
-//             swipeEnabled
-//             maxVisibleEventCount={9999}
-//             eventCellStyle={{
-//               backgroundColor: '#00bdaa',
-//               borderRadius: 6,
-//               padding: 2,
-//               minHeight: 22,
-//               justifyContent: 'center',
-//             }}
-//             calendarCellStyle={{
-//               borderWidth: 0.1,
-//               borderColor: '#ccc',
-//               backgroundColor: '#f8f9fa',
-//             }}
-//             calendarCellTextStyle={{
-//               color: '#000',
-//               marginTop: 10,
-//               fontSize: 14,
-//               fontWeight: 'bold',
-//             }}
-//             headerContentStyle={{
-//               backgroundColor: '#fff',
-//               paddingVertical: 6,
-//               borderBottomColor: '#CCC',
-//               borderBottomWidth: 1,
-//             }}
-//             hourStyle={{
-//               fontSize: 14,
-//               color: '#000',
-//               fontWeight: '600',
-//             }}
-//             weekDayLabelStyle={{
-//               fontSize: 14,
-//               color: 'black',
-//               fontWeight: 'bold',
-//             }}
-//             weekDayHeaderHighlightColor="#000"
-//             renderEvent={event => {
-//               const dateKey = dayjs(event.start).format('YYYY-MM-DD');
-//               const eventsOnDate = events.filter(
-//                 e => dayjs(e.start).format('YYYY-MM-DD') === dateKey,
-//               );
-//               const isExpanded = expandedDates[dateKey];
-//               const displayEvents = isExpanded
-//                 ? eventsOnDate
-//                 : eventsOnDate.slice(0, 1);
-//               const showMore = eventsOnDate.length > 1 && !isExpanded;
-
-//               return (
-//                 <View style={{ paddingHorizontal: 4, overflow: 'hidden' }}>
-//                   {isExpanded ? (
-//                     <ScrollView
-//                       style={{ maxHeight: 100 }}
-//                       nestedScrollEnabled={true}
-//                     >
-//                       {displayEvents.map((ev, idx) => (
-//                         <TouchableOpacity
-//                           key={idx}
-//                           onPress={() => handleEventPress(ev)}
-//                           style={{
-//                             backgroundColor: '#00bdaa',
-//                             borderRadius: 6,
-//                             paddingVertical: 2,
-//                             paddingHorizontal: 4,
-//                             marginVertical: 1,
-//                           }}
-//                         >
-//                           <Text
-//                             numberOfLines={1}
-//                             ellipsizeMode="tail"
-//                             style={{
-//                               fontWeight: 'bold',
-//                               color: '#fff',
-//                               fontSize: 12,
-//                               width: 120,
-//                               overflow: 'hidden',
-//                             }}
-//                           >
-//                             {ev.ticket.ticket_service_id}
-//                           </Text>
-//                         </TouchableOpacity>
-//                       ))}
-//                     </ScrollView>
-//                   ) : (
-//                     displayEvents.map((ev, idx) => (
-//                       <TouchableOpacity
-//                         key={idx}
-//                         onPress={() => handleEventPress(ev)}
-//                         style={{
-//                           backgroundColor: '#00bdaa',
-//                           borderRadius: 6,
-//                           paddingVertical: 2,
-//                           paddingHorizontal: 4,
-//                           marginVertical: 1,
-//                         }}
-//                       >
-//                         <Text
-//                           numberOfLines={1}
-//                           ellipsizeMode="tail"
-//                           style={{
-//                             fontWeight: 'bold',
-//                             color: '#fff',
-//                             fontSize: 12,
-//                             width: 120,
-//                             overflow: 'hidden',
-//                           }}
-//                         >
-//                           {ev.ticket.ticket_service_id}
-//                         </Text>
-//                       </TouchableOpacity>
-//                     ))
-//                   )}
-
-//                   {showMore && (
-//                     <TouchableOpacity
-//                       onPress={() =>
-//                         setExpandedDates(prev => ({
-//                           ...prev,
-//                           [dateKey]: true,
-//                         }))
-//                       }
-//                     >
-//                       <Text
-//                         style={{
-//                           color: 'black',
-//                           fontSize: 15,
-//                           fontWeight: 'bold',
-//                           marginTop: 2,
-//                         }}
-//                       >
-//                         +{eventsOnDate.length - 1} more
-//                       </Text>
-//                     </TouchableOpacity>
-//                   )}
-//                 </View>
-//               );
-//             }}
-//           />
-//         )}
-//       </GestureHandlerRootView>
-
-//       <View style={styles.bottomBar}>
-//         <TouchableOpacity
-//           style={styles.navItem}
-//           onPress={() => navigation.navigate('Dashboard')}
-//         >
-//           <FontAwesome name="home" size={30} color="#888" />
-//           <Text style={styles.navTexts}>Home</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity
-//           style={styles.navItem}
-//           onPress={() => navigation.navigate('EventsCalendar')}
-//         >
-//           <Ionicons name="calendar" size={30} color="#3Eb489" />
-//           <Text style={styles.navTexts}>EventsCalendar</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity
-//           style={styles.navItem}
-//           onPress={() => navigation.navigate('EventsOverview')}
-//         >
-//           <MaterialIcons name="event" size={30} color="#888" />
-//           <Text style={styles.navTexts}>Events overview</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity
-//           style={styles.navItem}
-//           onPress={() => navigation.navigate('ProfileScreen')}
-//         >
-//           <FontAwesome name="user" size={30} color="#888" />
-//           <Text style={styles.navTexts}>Profile</Text>
-//         </TouchableOpacity>
-//       </View>
-//     </>
-//   );
-// };
-// export default EventsCalendar;
-
-// const styles = StyleSheet.create({
-//   wrapper: {
-//     flex: 1,
-//     backgroundColor: '#f2f4f7',
-//     paddingBottom: 60,
-//   },
-
-//   topHeader: {
-//     backgroundColor: '#3EB489',
-//     height: 56,
-//     justifyContent: 'center',
-//     paddingHorizontal: 16,
-//     elevation: 4,
-//   },
-//   headerTitle: {
-//     color: '#fff',
-//     fontSize: 20,
-//     fontWeight: 'bold',
-//   },
-//   header: {
-//     backgroundColor: '#fff',
-//     paddingVertical: 12,
-//     paddingHorizontal: 16,
-//     elevation: 2,
-//     borderBottomWidth: 1,
-//     borderBottomColor: '#eee',
-//   },
-//   navRow: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//   },
-//   navButton: {
-//     paddingHorizontal: 12,
-//     paddingVertical: 6,
-//     borderRadius: 6,
-//     backgroundColor: '#e0f2f1',
-//   },
-//   navText: {
-//     fontSize: 18,
-//     color: '#00bdaa',
-//     fontWeight: 'bold',
-//   },
-//   todayButton: {
-//     paddingHorizontal: 16,
-//     paddingVertical: 8,
-//     backgroundColor: '#00bdaa',
-//     borderRadius: 6,
-//   },
-//   todayText: {
-//     color: '#fff',
-//     fontWeight: 'bold',
-//     fontSize: 14,
-//   },
-//   titleRow: {
-//     marginTop: 10,
-//     alignItems: 'center',
-//   },
-//   dateText: {
-//     fontSize: 16,
-//     color: '#333',
-//     fontWeight: '600',
-//   },
-//   modeRow: {
-//     marginTop: 12,
-//     flexDirection: 'row',
-//     justifyContent: 'space-around',
-//   },
-//   viewButton: {
-//     paddingHorizontal: 12,
-//     paddingVertical: 6,
-//     borderRadius: 6,
-//     backgroundColor: '#eee',
-//   },
-//   viewButtonActive: {
-//     backgroundColor: '#00bdaa',
-//   },
-//   viewText: {
-//     fontSize: 14,
-//     color: '#555',
-//     fontWeight: '600',
-//   },
-//   viewTextActive: {
-//     color: '#fff',
-//   },
-//   loader: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   agendaSection: {
-//     padding: 16,
-//     borderBottomWidth: 1,
-//     borderBottomColor: '#ddd',
-//   },
-//   agendaDate: {
-//     fontSize: 16,
-//     fontWeight: 'bold',
-//     color: 'black',
-//     // marginBottom: 10,
-//   },
-//   agendaCard: {
-//     backgroundColor: '#fff',
-//     padding: 12,
-//     borderRadius: 10,
-//     marginBottom: 10,
-//     elevation: 4,
-//   },
-//   agendaTime: {
-//     fontSize: 14,
-//     color: '#888',
-//     fontWeight: 'bold',
-//   },
-//   agendaTitle: {
-//     fontSize: 14,
-//     fontWeight: 'bold',
-//     marginTop: 4,
-//     color: '#888',
-//   },
-//   agendaLocation: {
-//     fontSize: 14,
-//     color: '#888',
-//     fontWeight: 'bold',
-//     marginTop: 2,
-//   },
-//   bottomBar: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-around',
-//     backgroundColor: '#fff',
-//     paddingVertical: 10,
-//     borderTopWidth: 1,
-//     borderTopColor: '#ddd',
-//     position: 'absolute',
-//     bottom: 0,
-//     width: '100%',
-//     elevation: 10,
-//   },
-//   navItem: {
-//     alignItems: 'center',
-//   },
-//   navTexts: {
-//     fontSize: 14,
-//     color: '#888',
-//     fontWeight: 'bold',
-//     marginTop: 4,
-//   },
-// });
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
-  StyleSheet,
-  ActivityIndicator,
-  TouchableOpacity,
   ScrollView,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
 } from 'react-native';
-import axios from 'axios';
-import { BASE_URL } from '@env';
-import { Calendar as BigCalendar } from 'react-native-big-calendar';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import dayjs from 'dayjs';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import moment from 'moment';
 
-const EventsCalendar = () => {
-  const [events, setEvents] = useState([]);
-  const [mode, setMode] = useState('month');
-  const [date, setDate] = useState(new Date());
-  const [loading, setLoading] = useState(false);
+const screenWidth = Dimensions.get('window').width;
+
+const timeSlots = Array.from(
+  { length: 24 },
+  (_, i) => `${i % 12 || 12} ${i < 12 ? 'AM' : 'PM'}`,
+);
+
+const staticData = {
+  birthdays: [
+    { id: '1', title: "John's Birthday", time: '10', date: '2025-07-21' },
+  ],
+  events: [
+    { id: '2', title: 'Team Meeting', time: '11', date: '2025-07-21' },
+    { id: '3', title: 'Lunch with Alex', time: '13', date: '2025-07-21' },
+  ],
+  notes: [{ id: '4', title: 'Call plumber', time: '16', date: '2025-07-21' }],
+  tasks: [{ id: '5', title: 'Submit Report', time: '9', date: '2025-07-21' }],
+};
+
+const COLORS = {
+  birthdays: '#FF6B81', // Soft Coral Pink
+  events: '#1ABC9C', // Elegant Teal
+  notes: '#F8C471', // Warm Amber
+  tasks: '#5DADE2', // Soft Blue
+};
+
+const DayView = () => {
+  const [selectedTab, setSelectedTab] = useState(null);
+  const [tabTouched, setTabTouched] = useState(false);
   const navigation = useNavigation();
+  const selectedDate = '2025-07-21';
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        const userId = await AsyncStorage.getItem('userId');
-        const clientId = await AsyncStorage.getItem('clientId');
-
-        if (!userId || !clientId) {
-          console.warn('Missing userId or clientId');
-          return;
-        }
-
-        const response = await axios.get(
-          `${BASE_URL}/api/tickets/employee/${userId}`,
-          {
-            headers: {
-              'x-client-id': clientId,
-            },
-          },
-        );
-
-        const tickets = response.data?.list || [];
-
-        const mapped = tickets
-          .filter(t => t.employee_arrival_date)
-          .map(ticket => {
-            const start = new Date(ticket.employee_arrival_date);
-            const end = new Date(ticket.employee_arrival_date);
-
-            return {
-              start,
-              end,
-              title: `Ticket #${ticket.ticket_id}`,
-              ticket,
-              ticket_id: ticket.ticket_id,
-            };
-          });
-
-        setEvents(mapped);
-      } catch (err) {
-        console.error('Failed to fetch events', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, [mode]);
-
-  const handleEventPress = event => {
-    navigation.navigate('ViewTickets', { ticketId: event.ticket_id });
+  const getFilteredItems = () => {
+    return Object.entries(staticData).flatMap(([category, items]) =>
+      items
+        .filter(
+          item =>
+            item.date === selectedDate &&
+            (!selectedTab || selectedTab === category),
+        )
+        .map(item => ({ ...item, category })),
+    );
   };
 
-  const goToToday = () => setDate(new Date());
+  const renderTabs = () => {
+    const tabs = tabTouched
+      ? ['all', 'birthdays', 'events', 'notes', 'tasks']
+      : ['birthdays', 'events', 'notes', 'tasks'];
 
-  const goToPrevious = () => {
-    const newDate =
-      mode === 'month'
-        ? dayjs(date).subtract(1, 'month')
-        : mode === 'week'
-        ? dayjs(date).subtract(1, 'week')
-        : dayjs(date).subtract(1, 'day');
-    setDate(newDate.toDate());
-  };
+    return (
+      <View style={styles.tabContainer}>
+        {tabs.map(tab => {
+          const isActive =
+            (selectedTab === null && tab === 'all') || selectedTab === tab;
 
-  const goToNext = () => {
-    const newDate =
-      mode === 'month'
-        ? dayjs(date).add(1, 'month')
-        : mode === 'week'
-        ? dayjs(date).add(1, 'week')
-        : dayjs(date).add(1, 'day');
-    setDate(newDate.toDate());
-  };
-
-  const formatDateHeader = () => {
-    if (mode === 'month') return dayjs(date).format('MMMM YYYY');
-    if (mode === 'week') {
-      const start = dayjs(date).startOf('week');
-      const end = dayjs(date).endOf('week');
-      return `${start.format('MMM D')} - ${end.format('MMM D, YYYY')}`;
-    }
-    return dayjs(date).format('dddd, MMMM D, YYYY');
-  };
-
-  const groupedEvents = events.reduce((acc, evt) => {
-    const dateKey = dayjs(evt.start).format('YYYY-MM-DD');
-    if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(evt);
-    return acc;
-  }, {});
-
-  return (
-    <>
-      <View style={styles.topHeader}>
-        <Text style={styles.headerTitle}> Calendar</Text>
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => {
+                setTabTouched(true);
+                setSelectedTab(tab === 'all' ? null : tab);
+              }}
+              style={[styles.tab, isActive && styles.activeTab]}
+            >
+              <Text style={[styles.tabText, isActive && styles.activeTabText]}>
+                {tab.toUpperCase()}
+              </Text>
+              {isActive && <View style={styles.underline} />}
+            </TouchableOpacity>
+          );
+        })}
       </View>
+    );
+  };
 
-      <GestureHandlerRootView style={styles.wrapper}>
-        <View style={styles.header}>
-          <View style={styles.navRow}>
-            <TouchableOpacity onPress={goToPrevious} style={styles.navButton}>
-              <Text style={styles.navText}>◀</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={goToToday} style={styles.todayButton}>
-              <Text style={styles.todayText}>Today</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={goToNext} style={styles.navButton}>
-              <Text style={styles.navText}>▶</Text>
-            </TouchableOpacity>
-          </View>
+  const renderDayTimeline = () => {
+    const items = getFilteredItems();
 
-          <View style={styles.titleRow}>
-            <Text style={styles.dateText}>{formatDateHeader()}</Text>
-          </View>
+    return timeSlots.map((slot, index) => {
+      const hour = index;
+      const slotItems = items.filter(i => parseInt(i.time) === hour);
 
-          <View style={styles.modeRow}>
-            {['month', 'week', 'day', 'agenda'].map(view => (
-              <TouchableOpacity
-                key={view}
+      return (
+        <View key={index} style={styles.slotRow}>
+          <Text style={styles.timeLabel}>{slot}</Text>
+          <View style={styles.verticalLine} />
+          <View style={styles.slotContent}>
+            {slotItems.map(item => (
+              <View
+                key={item.id}
                 style={[
-                  styles.viewButton,
-                  mode === view && styles.viewButtonActive,
+                  styles.eventBox,
+                  { backgroundColor: COLORS[item.category] },
                 ]}
-                onPress={() => setMode(view)}
               >
-                <Text
-                  style={[
-                    styles.viewText,
-                    mode === view && styles.viewTextActive,
-                  ]}
-                >
-                  {view.charAt(0).toUpperCase() + view.slice(1)}
-                </Text>
-              </TouchableOpacity>
+                <Text style={styles.eventText}>{item.title}</Text>
+              </View>
             ))}
           </View>
         </View>
+      );
+    });
+  };
 
-        {loading ? (
-          <View style={styles.loader}>
-            <ActivityIndicator size="large" color="#00bdaa" />
-          </View>
-        ) : mode === 'agenda' ? (
-          <ScrollView>
-            {Object.keys(groupedEvents)
-              .sort()
-              .map(date => (
-                <View key={date} style={styles.agendaSection}>
-                  <Text style={styles.agendaDate}>
-                    {dayjs(date).format('dddd, MMMM D, YYYY')}
-                  </Text>
-                  {groupedEvents[date].map((evt, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.agendaCard}
-                      onPress={() => handleEventPress(evt)}
-                    >
-                      <Text style={styles.agendaTime}>
-                        {dayjs(evt.start).format('h:mm A')}
-                      </Text>
-                      <Text style={styles.agendaTitle}>
-                        Ticket #{evt.ticket.ticket_id}
-                      </Text>
-                      <Text style={styles.agendaLocation}>
-                        {evt.ticket.address}, {evt.ticket.city_name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ))}
-          </ScrollView>
-        ) : (
-          <BigCalendar
-            events={events}
-            height={680}
-            mode={mode}
-            date={date}
-            onPressEvent={handleEventPress}
-            swipeEnabled
-            maxVisibleEventCount={9999}
-            eventCellStyle={{
-              backgroundColor: '#00bdaa',
-              borderRadius: 6,
-              padding: 2,
-              minHeight: 22,
-              justifyContent: 'center',
-            }}
-            calendarCellStyle={{
-              borderWidth: 0.1,
-              borderColor: '#ccc',
-              backgroundColor: '#f8f9fa',
-            }}
-            calendarCellTextStyle={{
-              color: '#000',
-              marginTop: 10,
-              fontSize: 14,
-              fontWeight: 'bold',
-            }}
-            headerContentStyle={{
-              backgroundColor: '#fff',
-              paddingVertical: 6,
-              borderBottomColor: '#CCC',
-              borderBottomWidth: 1,
-            }}
-            hourStyle={{
-              fontSize: 14,
-              color: '#000',
-              fontWeight: '600',
-            }}
-            weekDayLabelStyle={{
-              fontSize: 14,
-              color: 'black',
-              fontWeight: 'bold',
-            }}
-            weekDayHeaderHighlightColor="#000"
-            renderEvent={event => (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ maxWidth: 120 }}
-              >
-                <TouchableOpacity
-                  onPress={() => handleEventPress(event)}
-                  style={{
-                    backgroundColor: '#00bdaa',
-                    borderRadius: 6,
-                    paddingVertical: 2,
-                    paddingHorizontal: 4,
-                    marginRight: 4,
-                    overflow: 'hidden',
-                    minWidth: 100,
-                  }}
-                >
-                  <Text
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    style={{
-                      fontWeight: 'bold',
-                      color: '#fff',
-                      fontSize: 12,
-                    }}
-                  >
-                    {event.ticket.ticket_service_id}
-                  </Text>
-                </TouchableOpacity>
-              </ScrollView>
-            )}
-          />
-        )}
-      </GestureHandlerRootView>
-
-      <View style={styles.bottomBar}>
+  return (
+    <View style={styles.container}>
+      <View style={styles.topNav}>
         <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Dashboard')}
+          onPress={() => navigation.navigate('MonthView')}
+          style={[styles.navTabBackground]}
         >
-          <FontAwesome name="home" size={30} color="#888" />
-          <Text style={styles.navTexts}>Home</Text>
+          <Text style={[styles.navTabText]}>Month</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('EventsCalendar')}
+          onPress={() => navigation.navigate('WeekView')}
+          style={[styles.navTabBackground]}
         >
-          <Ionicons name="calendar" size={30} color="#3Eb489" />
-          <Text style={styles.navTexts}>EventsCalendar</Text>
+          <Text style={[styles.navTabText]}>Week</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('EventsOverview')}
+          onPress={() => navigation.navigate('DayView')}
+          style={[styles.navTabBackground]}
         >
-          <MaterialIcons name="event" size={30} color="#888" />
-          <Text style={styles.navTexts}>Events overview</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('ProfileScreen')}
-        >
-          <FontAwesome name="user" size={30} color="#888" />
-          <Text style={styles.navTexts}>Profile</Text>
+          <Text style={[styles.navTabText]}>Day</Text>
         </TouchableOpacity>
       </View>
-    </>
+
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('MonthView', { selectedDate })}
+        >
+          <Text style={styles.dateText}>
+            {moment(selectedDate).format('dddd, MMMM D')}
+          </Text>
+        </TouchableOpacity>
+
+        {renderTabs()}
+        <View
+          style={{
+            paddingTop: 10,
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: 10,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#FF6B81',
+              padding: 10,
+              borderRadius: 6,
+              width: 150,
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+              John's Birthday
+            </Text>
+          </View>
+          <View
+            style={{
+              backgroundColor: '#1ABC9C',
+              padding: 10,
+              borderRadius: 6,
+              width: 150,
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+              Team Meeting
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <ScrollView style={styles.timelineContainer}>
+        {renderDayTimeline()}
+      </ScrollView>
+    </View>
   );
 };
 
-export default EventsCalendar;
-
 const styles = StyleSheet.create({
-  wrapper: {
+  container: {
     flex: 1,
-    backgroundColor: '#f2f4f7',
-    paddingBottom: 60,
-  },
-
-  topHeader: {
-    backgroundColor: '#3EB489',
-    height: 56,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    elevation: 4,
-  },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
+    backgroundColor: '#f9f9f9',
   },
   header: {
-    backgroundColor: '#fff',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    elevation: 2,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  navRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    paddingTop: 30,
+    paddingBottom: 10,
     alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderBottomColor: '#bbb',
+    borderBottomWidth: 1,
   },
-  navButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: '#e0f2f1',
-  },
-  navText: {
-    fontSize: 18,
-    color: '#00bdaa',
-    fontWeight: 'bold',
-  },
-  todayButton: {
-    paddingHorizontal: 16,
+  navTabBackground: {
+    backgroundColor: '#3EB489',
     paddingVertical: 8,
-    backgroundColor: '#00bdaa',
-    borderRadius: 6,
+    paddingHorizontal: 16,
+    borderRadius: 20,
   },
-  todayText: {
+  navTabText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 14,
+    textAlign: 'center',
   },
-  titleRow: {
-    marginTop: 10,
-    alignItems: 'center',
-  },
+
   dateText: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: '600',
+    fontSize: 18,
+    color: 'black',
+    fontWeight: 'bold',
+    marginBottom: 8,
   },
-  modeRow: {
-    marginTop: 12,
+  topNav: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-  },
-  viewButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: '#eee',
-  },
-  viewButtonActive: {
-    backgroundColor: '#00bdaa',
-  },
-  viewText: {
-    fontSize: 14,
-    color: '#555',
-    fontWeight: '600',
-  },
-  viewTextActive: {
-    color: '#fff',
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  agendaSection: {
-    padding: 16,
+    paddingVertical: 10,
+    marginTop: 40,
+    backgroundColor: '#fff',
+    borderBottomColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
   },
-  agendaDate: {
+  topNavText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: 'black',
-    // marginBottom: 10,
   },
-  agendaCard: {
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 10,
-    elevation: 4,
+
+  timelineContainer: {
+    flex: 1,
+    paddingHorizontal: 10,
+    backgroundColor: '#fdfdfd',
   },
-  agendaTime: {
-    fontSize: 14,
-    color: '#888',
-    fontWeight: 'bold',
-  },
-  agendaTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 4,
-    color: '#888',
-  },
-  agendaLocation: {
-    fontSize: 14,
-    color: '#888',
-    fontWeight: 'bold',
-    marginTop: 2,
-  },
-  bottomBar: {
+  slotRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    elevation: 10,
+    alignItems: 'center',
+    borderBottomColor: '#ccc',
+    borderBottomWidth: 0.8,
+    minHeight: 60,
   },
-  navItem: {
+  timeLabel: {
+    width: 60,
+    color: 'black',
+    fontSize: 14,
+  },
+  slotContent: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  },
+  eventBox: {
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    width: '50%',
+    alignSelf: 'center',
+    backgroundColor: '#f2f2f2',
+  },
+  eventText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#ffffff',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    justifyContent: 'space-around',
+    borderTopColor: '#eee',
+    borderTopWidth: 1,
+  },
+  tab: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
     alignItems: 'center',
   },
-  navTexts: {
-    fontSize: 14,
+  activeTab: {
+    backgroundColor: '#e0f7ef',
+  },
+  tabText: {
     color: '#888',
     fontWeight: 'bold',
+    fontSize: 14,
+  },
+  activeTabText: {
+    color: '#3EB489',
+    fontWeight: 'bold',
+  },
+  verticalLine: {
+    width: 1,
+    backgroundColor: '#bbb',
+    height: '100%',
+    marginHorizontal: 10,
+  },
+  underline: {
     marginTop: 4,
+    height: 2,
+    width: '100%',
+    backgroundColor: '#3EB489',
+    borderRadius: 1,
   },
 });
+
+export default DayView;

@@ -13,7 +13,6 @@ import {
   SafeAreaView,
 } from 'react-native';
 import axios from 'axios';
-import { BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   useNavigation,
@@ -47,7 +46,9 @@ const ViewTickets = () => {
   const fetchTicket = useCallback(async () => {
     if (!userId || !ticketId) return;
     try {
-      const response = await axios.get(`${BASE_URL}/api/tickets/${ticketId}`);
+      const response = await axios.get(
+        `http://10.0.2.2:5000/api/tickets/${ticketId}`,
+      );
       setTicket(response.data.list);
     } catch (error) {
       console.error('Error fetching ticket:', error);
@@ -63,52 +64,6 @@ const ViewTickets = () => {
       fetchTicket();
     }, [fetchTicket]),
   );
-
-  // const ViewTickets = () => {
-  //   const navigation = useNavigation();
-  //   const route = useRoute();
-  //   const ticketId = route.params?.ticketId;
-
-  //   const [ticket, setTicket] = useState(null);
-  //   const [loading, setLoading] = useState(true);
-  //   const [userId, setUserId] = useState(null);
-
-  //   const fetchTicketData = useCallback(async () => {
-  //     setLoading(true);
-  //     try {
-  //       const storedUserId = await AsyncStorage.getItem('userId');
-  //       const storedClientId = await AsyncStorage.getItem('clientId');
-
-  //       if (!storedUserId || !storedClientId || !ticketId) {
-  //         Alert.alert('Error', 'Missing user or ticket info');
-  //         navigation.goBack();
-  //         return;
-  //       }
-
-  //       setUserId(storedUserId);
-  //       const response = await axios.get(`${BASE_URL}/api/tickets/${ticketId}`, {
-  //         headers: { 'x-client-id': storedClientId },
-  //       });
-
-  //       if (response.data?.list) {
-  //         setTicket(response.data.list);
-  //       } else {
-  //         throw new Error('Ticket not found');
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching ticket:', error);
-  //       Alert.alert('Error', 'Unable to load ticket');
-  //       navigation.goBack();
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }, [ticketId, navigation]);
-
-  //   useFocusEffect(
-  //     useCallback(() => {
-  //       fetchTicketData();
-  //     }, [fetchTicketData]),
-  //   );
 
   const handleMediaOpen = fileName => {
     const url = `https://your-cdn-domain.com/${fileName}`;
@@ -159,7 +114,6 @@ const ViewTickets = () => {
               <Text style={styles.Text}>
                 {ticket.address}, {ticket.city_name}, {ticket.state_name}
               </Text>
-              <Text style={styles.Text}>{ticket.customer_email}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() =>
@@ -187,15 +141,15 @@ const ViewTickets = () => {
               numberOfLines={1}
               ellipsizeMode="clip"
             >
-              {ticket.priority_rank}
+              {ticket.customer_email}
             </Text>
 
             <Text
-              style={styles.descriptionText}
+              style={styles.priorityText}
               numberOfLines={1}
               ellipsizeMode="clip"
             >
-              {ticket.description}
+              {ticket.priority_rank}
             </Text>
           </View>
           {ticket.customer_reject_reason && (
@@ -290,9 +244,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   badgeNew: {
-    backgroundColor: '#3EB489',
+    backgroundColor: '#FF6B6B',
     borderRadius: 8,
-
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
@@ -308,43 +261,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     fontWeight: 'bold',
-    backgroundColor: '#4CAF50',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    textAlign: 'center',
+    backgroundColor: '#2196F3',
+    padding: 8,
     borderRadius: 8,
     marginRight: 6,
+    textAlign: 'center',
     minWidth: 0,
     flexShrink: 1,
   },
-
   emailText: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: 'bold',
-    backgroundColor: '#9CA3AF',
-    color: '#FFFFFF',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    textAlign: 'center',
-    borderRadius: 8,
-    marginRight: 6,
-    minWidth: 0,
-    flexShrink: 1,
-  },
-
-  descriptionText: {
     flex: 1,
     fontSize: 14,
     color: '#fff',
     fontWeight: 'bold',
     backgroundColor: '#3EB489',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    padding: 8,
+    borderRadius: 8,
+    marginRight: 6,
+    textAlign: 'center',
+    minWidth: 0,
+    flexShrink: 1,
+  },
+  priorityText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: 'bold',
+    backgroundColor: '#FF9800',
+    padding: 8,
     borderRadius: 8,
     textAlign: 'center',
   },
-
   divider: {
     height: 1,
     backgroundColor: '#bbb',
@@ -352,7 +299,7 @@ const styles = StyleSheet.create({
   },
   Text: {
     fontSize: 13,
-    color: '#888',
+    color: '#444',
     fontWeight: 'bold',
     marginBottom: 8,
     backgroundColor: '#f9fbe7',
@@ -415,7 +362,7 @@ const styles = StyleSheet.create({
   },
   subText: {
     fontSize: 14,
-    color: '#888',
+    color: '#333',
     backgroundColor: '#e0f7fa',
     padding: 10,
     borderRadius: 10,
@@ -430,7 +377,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   viewMapText: {
-    color: '#888',
+    color: '#1E88E5',
     fontWeight: 'bold',
     fontSize: 13,
   },

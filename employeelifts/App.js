@@ -9,6 +9,10 @@ import EditTicket from './Tickets/EditTicket';
 import EventsOverview from './Events/Events';
 import ProfileScreen from './Profile/Profile';
 import OTPScreen from './Authentication/Otp';
+import MonthView from './Calendar/Monthview';
+import WeekView from './Calendar/WeekScreen';
+import DayView from './Calendar/Calendar';
+import Profile from './Profile/Profileui';
 import ForgotPassword from './Authentication/ForgotPassword';
 const Stack = createStackNavigator();
 
@@ -28,6 +32,12 @@ const App = () => {
         <Stack.Screen name="ViewTickets" component={ViewTickets} />
         <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
         <Stack.Screen name="OTPScreen" component={OTPScreen} />
+
+        <Stack.Screen name="MonthView" component={MonthView} />
+        <Stack.Screen name="DayView" component={DayView} />
+        <Stack.Screen name="Profile" component={Profile} />
+
+        <Stack.Screen name="WeekView" component={WeekView} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -24,7 +24,7 @@ const Locations = () => {
   const handleCities = async state => {
     try {
       const response = await axios.get(
-        `http://10.0.2.2:5000/api/cities/state/${state}`,
+        'http://10.0.2.2:5000/api/cities/state/${state}',
       );
       const { data } = response;
       setCities(data);
@@ -36,7 +36,7 @@ const Locations = () => {
   const handleAreas = async city => {
     try {
       const response = await axios.get(
-        `http://10.0.2.2:5000/api/regions/city/${city}`,
+        'http://10.0.2.2:5000/api/regions/city/${city}',
       );
       const { data } = response;
       setAreas(data);
