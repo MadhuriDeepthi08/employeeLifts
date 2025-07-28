@@ -7,7 +7,11 @@ import EventsCalendar from './Calendar/Calendar';
 import ViewTickets from './Tickets/ViewTicket';
 import EditTicket from './Tickets/EditTicket';
 import EventsOverview from './Events/Events';
+import EditProfile from './Profile/EditProfile';
+import Password from './Profile/Password';
+import ChangeAddress from './Profile/ChangeAddress';
 import ProfileScreen from './Profile/Profile';
+import EditAddress from './Profile/EditAddress';
 import OTPScreen from './Authentication/Otp';
 import MonthView from './Calendar/Monthview';
 import WeekView from './Calendar/WeekScreen';
@@ -23,6 +27,11 @@ const App = () => {
         initialRouteName="Login"
         screenOptions={{ headerShown: false }}
       >
+        <Stack.Screen name="EditProfile" component={EditProfile} />
+        <Stack.Screen name="Password" component={Password} />
+        <Stack.Screen name="ChangeAddress" component={ChangeAddress} />
+        <Stack.Screen name="EditAddress" component={EditAddress} />
+
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
         <Stack.Screen name="EventsOverview" component={EventsOverview} />
         <Stack.Screen name="EventsCalendar" component={EventsCalendar} />

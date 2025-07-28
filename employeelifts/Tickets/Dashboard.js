@@ -227,15 +227,14 @@ const Dashboard = ({ navigation }) => {
       Alert.alert('Error', 'Failed to update service');
     }
   };
-
   const handleEditUpdate = async () => {
     const userStr = await AsyncStorage.getItem('userId');
     const user = JSON.parse(userStr);
 
     let status_id = 3;
-    if (editStatus === 'Done') status_id = 4;
-    else if (editStatus === 'On Hold') status_id = 5;
-    else if (editStatus === 'Pending') status_id = 6;
+    if (editStatus === 'Done') status_id = 6;
+    else if (editStatus === 'On Hold') status_id = 4;
+    else if (editStatus === 'Pending') status_id = 5;
 
     const reasonMsg =
       editStatus === 'Done'
@@ -275,6 +274,7 @@ const Dashboard = ({ navigation }) => {
       Alert.alert('Error', 'Failed to update status');
     }
   };
+
   const getStatusChipStyle = status => {
     switch (status?.toLowerCase()) {
       case 'open':

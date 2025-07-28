@@ -108,7 +108,7 @@ const EventsOverview = () => {
             />
           ) : rows.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No tickets found.</Text>
+              <Text style={styles.emptyText}>No scheduled events.</Text>
             </View>
           ) : (
             <FlatList

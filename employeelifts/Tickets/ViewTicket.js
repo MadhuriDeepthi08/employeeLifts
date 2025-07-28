@@ -20,6 +20,8 @@ import {
   useFocusEffect,
 } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FormatStatusTrackerData from './FormatStatusTrackerData';
 import AddConversation from './Conversation';
 
@@ -93,7 +95,7 @@ const ViewTickets = () => {
           <View style={styles.card}>
             <FormatStatusTrackerData trackingData={ticket.status_tracker} />
           </View>
-        )}
+        )}{' '}
         <View style={styles.ticketCard}>
           <View style={styles.ticketHeader}>
             <Text style={styles.customerName}>{ticket.customer_name}</Text>
@@ -102,30 +104,82 @@ const ViewTickets = () => {
             </View>
           </View>
 
-          <View style={styles.rowBetween}>
-            <Text style={styles.Text}>
-              {ticket.category_name}, {ticket.created_at?.split('T')[0]}
-            </Text>
-            <TouchableOpacity
-              onPress={() =>
-                openMap(ticket.address, ticket.city_name, ticket.state_name)
-              }
-            >
-              <Text style={styles.Text}>
-                {ticket.address}, {ticket.city_name}, {ticket.state_name}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() =>
-                openMap(ticket.address, ticket.city_name, ticket.state_name)
-              }
-              style={styles.viewMapButton}
-            >
-              <Text style={styles.viewMapText}>
-                View Location on Google Maps
-              </Text>
-            </TouchableOpacity>
+          {/* Category */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 2,
+            }}
+          >
+            <MaterialCommunityIcons
+              name="tag-outline"
+              size={18}
+              color="#069b7C"
+              style={{ marginLeft: 10 }}
+            />
+            <Text style={styles.Text}>{ticket.category_name}</Text>
           </View>
+
+          {/* Created Date */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 2,
+            }}
+          >
+            <MaterialCommunityIcons
+              name="clock-outline"
+              size={18}
+              color="#069b7C"
+              style={{ marginLeft: 10 }}
+            />
+            <Text style={styles.Text}>{ticket.created_at?.split('T')[0]}</Text>
+          </View>
+
+          {/* Address */}
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 2,
+            }}
+            onPress={() =>
+              openMap(ticket.address, ticket.city_name, ticket.state_name)
+            }
+          >
+            <MaterialCommunityIcons
+              name="map-marker"
+              size={18}
+              color="#069b7C"
+              style={{ marginLeft: 10 }}
+            />
+            <Text style={styles.Text}>
+              {ticket.address}, {ticket.city_name}, {ticket.state_name}
+            </Text>
+          </TouchableOpacity>
+
+          {/* View on Google Maps */}
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 2,
+            }}
+            onPress={() =>
+              openMap(ticket.address, ticket.city_name, ticket.state_name)
+            }
+          >
+            <MaterialCommunityIcons
+              name="google-maps"
+              size={18}
+              color=" #1976D2"
+              style={{ marginLeft: 10 }}
+            />
+            <Text style={styles.viewMapText}>View Location on Google Maps</Text>
+          </TouchableOpacity>
+
           <View style={styles.divider} />
           <View style={styles.infoRowContainer}>
             <Text
@@ -167,7 +221,6 @@ const ViewTickets = () => {
             <Text style={styles.subText}> Rating: {ticket.rating}/5</Text>
           )}
         </View>
-
         <View style={styles.cards}>
           <AddConversation
             user={{ userId }}
@@ -176,7 +229,6 @@ const ViewTickets = () => {
             fetchData={fetchTicket}
           />
         </View>
-
         <View style={styles.Media}>
           <Text style={styles.sectionTitle}>Media</Text>
           {ticket?.multimedia?.length ? (
@@ -259,7 +311,7 @@ const styles = StyleSheet.create({
   phoneText: {
     flex: 1,
     fontSize: 14,
-    color: '#fff',
+    color: '#000',
     fontWeight: 'bold',
     backgroundColor: '#2196F3',
     padding: 8,
@@ -272,7 +324,7 @@ const styles = StyleSheet.create({
   emailText: {
     flex: 1,
     fontSize: 14,
-    color: '#fff',
+    color: '#000',
     fontWeight: 'bold',
     backgroundColor: '#3EB489',
     padding: 8,
@@ -285,7 +337,7 @@ const styles = StyleSheet.create({
   priorityText: {
     flex: 1,
     fontSize: 14,
-    color: '#fff',
+    color: '#000',
     fontWeight: 'bold',
     backgroundColor: '#FF9800',
     padding: 8,
@@ -301,12 +353,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#444',
     fontWeight: 'bold',
-    marginBottom: 8,
     backgroundColor: '#f9fbe7',
-    padding: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     borderRadius: 8,
     width: '100%',
+    marginBottom: 0,
+    lineHeight: 10,
   },
+
   cards: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -375,6 +430,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     alignSelf: 'flex-start',
     marginHorizontal: 10,
+    color: '#1976D2',
   },
   viewMapText: {
     color: '#1E88E5',

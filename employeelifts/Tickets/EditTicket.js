@@ -30,6 +30,12 @@ const EditTicket = ({ onClose, employeeTicketData, fetchData, userId }) => {
         const ticketData = {
           status_id: Number(values.status_id),
           user_id: userId,
+          status_name:
+            values.status_id === '4'
+              ? 'On-Hold'
+              : values.status_id === '5'
+              ? 'Pending'
+              : 'Done',
         };
 
         if (values.status_id === '4') {
@@ -44,18 +50,13 @@ const EditTicket = ({ onClose, employeeTicketData, fetchData, userId }) => {
 
         const trackerData = StatusTracker(
           employeeTicketData?.status_tracker,
-          values?.status_id === '4'
-            ? values.onhold_reason || 'On-Hold from Employee'
-            : values?.status_id === '5'
-            ? values.pending_reason || 'Pending from Employee'
-            : 'Ticket is completed',
-          values?.status_id === '4'
-            ? 'On-hold'
-            : values?.status_id === '5'
-            ? 'Pending'
-            : 'Done',
-          values?.status_id,
-
+          ticketData.status_name === 'Done'
+            ? 'Ticket is completed'
+            : ticketData.status_name === 'On-Hold'
+            ? ticketData.onhold_reason
+            : ticketData.pending_reason,
+          ticketData.status_name,
+          values.status_id,
           `Employee ${userId}`,
           employeeTicketData?.employee_name,
           employeeTicketData?.employee_phone || '',
@@ -65,7 +66,7 @@ const EditTicket = ({ onClose, employeeTicketData, fetchData, userId }) => {
 
         try {
           const response = await axios.put(
-            'http://10.0.2.2:5000api/tickets/${employeeTicketData.ticket_id}',
+            `http://10.0.2.2:5000/api/tickets/${employeeTicketData.ticket_id}`,
             { ticketData },
           );
           fetchData();
